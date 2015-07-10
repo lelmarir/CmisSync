@@ -178,9 +178,9 @@ namespace CmisSync.Lib
             string localRootRelative = localFolder;
             if (localFolder.StartsWith(this.localRoot))
             {
-                localRootRelative = localFolder.Substring(localRoot.Length).TrimStart(CmisUtils.CMIS_FILE_SEPARATOR);
+                localRootRelative = localFolder.Substring(localRoot.Length).TrimStart(CmisPath.CMIS_FILE_SEPARATOR);
             }
-            this.remotePath = CmisUtils.PathCombine(PathRepresentationConverter.LocalToRemote(localRootRelative), remoteRelativePath);
+            this.remotePath = CmisPath.Combine(PathRepresentationConverter.LocalToRemote(localRootRelative), remoteRelativePath);
         }
 
         /// <summary></summary>
@@ -265,7 +265,7 @@ namespace CmisSync.Lib
             this.remotePath = remotePath;
             if (remotePath.StartsWith(this.remoteRoot))
             {
-                this.remotePath = remotePath.Substring(this.remoteRoot.Length).TrimStart(CmisUtils.CMIS_FILE_SEPARATOR);
+                this.remotePath = remotePath.Substring(this.remoteRoot.Length).TrimStart(CmisPath.CMIS_FILE_SEPARATOR);
             }
             this.localPath = PathRepresentationConverter.RemoteToLocal(this.remotePath);
         }
@@ -282,12 +282,12 @@ namespace CmisSync.Lib
             this.remotePath = Path.Combine(remoteFolder, PathRepresentationConverter.LocalToRemote(localRelativePath));
             if (this.remotePath.StartsWith(this.remoteRoot))
             {
-                this.remotePath = this.remotePath.Substring(this.localRoot.Length).TrimStart(CmisUtils.CMIS_FILE_SEPARATOR);
+                this.remotePath = this.remotePath.Substring(this.localRoot.Length).TrimStart(CmisPath.CMIS_FILE_SEPARATOR);
             }
             string remoteRootRelative = remoteFolder;
             if (remoteFolder.StartsWith(this.remoteRoot))
             {
-                remoteRootRelative = remoteFolder.Substring(localRoot.Length).TrimStart(CmisUtils.CMIS_FILE_SEPARATOR);
+                remoteRootRelative = remoteFolder.Substring(localRoot.Length).TrimStart(CmisPath.CMIS_FILE_SEPARATOR);
             }
             this.localPath = Path.Combine(PathRepresentationConverter.RemoteToLocal(remoteRootRelative), localRelativePath);
         }

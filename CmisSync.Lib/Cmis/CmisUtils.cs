@@ -44,9 +44,6 @@ namespace CmisSync.Lib.Cmis
         // Log.
         private static readonly ILog Logger = LogManager.GetLogger(typeof(CmisUtils));
 
-        /// <summary>Character that separates two folders in a CMIS path.</summary>
-        public static char CMIS_FILE_SEPARATOR = '/';
-
         /// <summary>
         /// Try to find the CMIS server associated to any URL.
         /// Users can provide the URL of the web interface, and we have to return the CMIS URL
@@ -463,11 +460,19 @@ namespace CmisSync.Lib.Cmis
         }
 
 
+        
+    }
+
+    public class CmisPath
+    {
+        /// <summary>Character that separates two folders in a CMIS path.</summary>
+        public static char CMIS_FILE_SEPARATOR = '/';
+
         /// <summary>
         /// Equivalent of .NET Path.Combine, but for CMIS paths.
         /// CMIS paths always use forward slashes.
         /// </summary>
-        public static string PathCombine(string path1, string path2)
+        public static string Combine(string path1, string path2)
         {
             if (String.IsNullOrEmpty(path1))
                 return path2;
