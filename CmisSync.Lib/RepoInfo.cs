@@ -151,7 +151,7 @@ namespace CmisSync.Lib
             User = user;
             Password = password;
             RepoID = repoID;
-            TargetDirectory = Path.Combine(ConfigManager.CurrentConfig.FoldersPath, name);
+            TargetDirectory = Path.Combine(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath, name);
             PollInterval = pollInterval;
             IsSuspended = isSuspended;
             LastSuccessedSync = lastSuccessedSync;

@@ -12,8 +12,8 @@ namespace TestLibrary
     [TestFixture]
     class ChunkedStreamTest
     {
-        private readonly string TestFilePath = Path.Combine(ConfigManager.CurrentConfig.FoldersPath, "ChunkedStreamTest.txt");
-        private readonly string DatabasePath = Path.Combine(ConfigManager.CurrentConfig.FoldersPath, "ChunkedStreamTest.cmissync");
+        private readonly string TestFilePath = Path.Combine(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath, "ChunkedStreamTest.txt");
+        private readonly string DatabasePath = Path.Combine(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath, "ChunkedStreamTest.cmissync");
         private readonly int ChunkSize = 1024;
 
         [TestFixtureSetUp]

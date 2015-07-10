@@ -128,7 +128,7 @@ namespace CmisSync.Lib.Database
             var filters = new HashSet<string>();
             filters.Add("cmis:objectId");
             string remoteRootFolder = syncFolder.RemotePath;
-            string localRootFolder = syncFolder.LocalPath.Substring(ConfigManager.CurrentConfig.FoldersPath.Length + 1);
+            string localRootFolder = syncFolder.LocalPath.Substring(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath.Length + 1);
 
             try
             {

@@ -151,7 +151,7 @@ namespace CmisSync.Lib
         /// <summary>
         /// Path where the synchronized folders are stored by default.
         /// </summary>
-        public string FoldersPath
+        public string DefaultRepositoryRootFolderPath
         {
             get
             {

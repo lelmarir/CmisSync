@@ -16,7 +16,7 @@ namespace TestLibrary
     [TestFixture]
     class CmisDatabaseTest
     {
-        private static readonly string RootPath = Path.Combine(ConfigManager.CurrentConfig.FoldersPath, "CmisDatabaseTest");
+        private static readonly string RootPath = Path.Combine(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath, "CmisDatabaseTest");
         private static readonly string DatabasePath = Path.Combine(RootPath, "CmisDatabaseTest.cmissync");
         private static readonly byte[] FakeHash = {1,2,3,4,5};
 

@@ -55,7 +55,7 @@ namespace TestLibrary
     [TestFixture]
     public class CmisSyncTests
     {
-        private readonly string CMISSYNCDIR = ConfigManager.CurrentConfig.FoldersPath;
+        private readonly string CMISSYNCDIR = ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath;
         private readonly int HeavyNumber = 10;
         private readonly int HeavyFileSize = 1024;
 

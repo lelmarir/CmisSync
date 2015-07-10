@@ -207,7 +207,7 @@ namespace CmisSync
         {
             this.firstRun = firstRun;
 
-            FoldersPath = ConfigManager.CurrentConfig.FoldersPath;
+            FoldersPath = ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath;
 
             // Create the CmisSync folder and add it to the bookmarks
             bool syncFolderCreated = CreateCmisSyncFolder();
@@ -557,16 +557,16 @@ namespace CmisSync
                 repoInfo.addIgnorePath(ignore);
 
             // Check that the CmisSync root folder exists.
-            if (!Directory.Exists(ConfigManager.CurrentConfig.FoldersPath))
+            if (!Directory.Exists(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath))
             {
-                Logger.Fatal(String.Format("Fetcher | ERROR - Cmis Default Folder {0} does not exist", ConfigManager.CurrentConfig.FoldersPath));
+                Logger.Fatal(String.Format("Fetcher | ERROR - Cmis Default Folder {0} does not exist", ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath));
                 throw new DirectoryNotFoundException("Root folder don't exist !");
             }
 
             // Check that the folder is writable.
-            if (!CmisSync.Lib.Utils.HasWritePermissionOnDir(ConfigManager.CurrentConfig.FoldersPath))
+            if (!CmisSync.Lib.Utils.HasWritePermissionOnDir(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath))
             {
-                Logger.Fatal(String.Format("Fetcher | ERROR - Cmis Default Folder {0} is not writable", ConfigManager.CurrentConfig.FoldersPath));
+                Logger.Fatal(String.Format("Fetcher | ERROR - Cmis Default Folder {0} is not writable", ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath));
                 throw new UnauthorizedAccessException("Root folder is not writable!");
             }
 
