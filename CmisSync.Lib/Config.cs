@@ -136,7 +136,7 @@ namespace CmisSync.Lib
         /// <summary>
         /// Path to the user's home folder.
         /// </summary>
-        public string HomePath
+        public string UserHomePath
         {
             get
             {
@@ -155,7 +155,7 @@ namespace CmisSync.Lib
         {
             get
             {
-                return Path.Combine(HomePath, "CmisSync");
+                return Path.Combine(UserHomePath, "CmisSync");
             }
         }
 
