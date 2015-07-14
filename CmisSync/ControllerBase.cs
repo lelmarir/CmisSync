@@ -210,7 +210,7 @@ namespace CmisSync
         {
             this.firstRun = firstRun;
 
-            FoldersPath = ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath;
+            FoldersPath = ConfigManager.CurrentConfig.DEFAULT_REPOSITORY_ROOT_FOLDER_PATH;
 
             // Create the CmisSync folder and add it to the bookmarks
             bool syncFolderCreated = CreateCmisSyncFolder();
@@ -342,7 +342,7 @@ namespace CmisSync
         /// <param name="folder_path">The synchronized folder whose database is to be removed</param>
         private void RemoveDatabase(string folder_path)
         {
-            string databasefile = Path.Combine(ConfigManager.CurrentConfig.ConfigPath, Path.GetFileName(folder_path) + ".cmissync");
+            string databasefile = Path.Combine(ConfigManager.CurrentConfig.ConfigurationDirectoryPath, Path.GetFileName(folder_path) + ".cmissync");
             if (File.Exists(databasefile))
             {
                 File.Delete(databasefile);

@@ -81,6 +81,7 @@ namespace CmisSync
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(SetupController));
 
+        #region GUI
         /// <summary>
         /// Show window event.
         /// </summary>
@@ -207,6 +208,8 @@ namespace CmisSync
         /// Current step of the remote folder addition wizard.
         /// </summary>
         private PageType FolderAdditionWizardCurrentPage;
+
+        #endregion
 
         /// <summary>
         /// Previous address.

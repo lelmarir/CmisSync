@@ -142,7 +142,7 @@ namespace CmisSync
         /// </summary>
         public void OpenCmisSyncFolder()
         {
-            Utils.OpenFolder(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath);
+            Utils.OpenFolder(ConfigManager.CurrentConfig.DEFAULT_REPOSITORY_ROOT_FOLDER_PATH);
         }
 
 

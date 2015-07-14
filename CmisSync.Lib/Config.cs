@@ -35,22 +35,19 @@ namespace CmisSync.Lib
         /// The current config schema version.
         /// </summary>
         public const int SchemaVersion = 1;
-
-
+        
         /// <summary>
         /// Chunk size for chunked transfers (not implemented yet)
         /// </summary>
-        private const long DefaultChunkSize = 1024 * 1024;
-
-
+        private const long DEFAULT_CHUNK_SIZE = 1024 * 1024;
+        
         /// <summary>
         /// Default poll interval.
         /// It is used for any newly created synchronized folder.
         /// In milliseconds.
         /// </summary>
         public static readonly int DEFAULT_POLL_INTERVAL = 5 * 1000; // 5 seconds.
-
-
+        
         /// <summary>
         /// Log.
         /// </summary>
@@ -61,19 +58,17 @@ namespace CmisSync.Lib
         /// data structure storing the configuration.
         /// </summary>
         private SyncConfig configXml;
-
-
+        
         /// <summary>
         /// Full path to the XML configuration file.
         /// </summary>
-        public string FullPath { get; private set; }
-
-
+        public string ConfigurationFileFullPath { get; private set; }
+        
         /// <summary>
         /// Path of the folder where configuration files are.
         /// These files are in particular the XML configuration file, the database files, and the log file.
         /// </summary>
-        public string ConfigPath { get; private set; }
+        public string ConfigurationDirectoryPath { get; private set; }
 
         // XML elements.
 
@@ -97,9 +92,6 @@ namespace CmisSync.Lib
         /// </summary>
         public bool FrozenConfiguration { get { return configXml.FrozenConfiguration; } set { configXml.FrozenConfiguration = value; } }
 
-        /// <summary>
-        /// Folder.
-        /// </summary>
         public List<SyncConfig.LocalRepository> LocalRepositories { get { return configXml.LocalRepositories; } }
 
         /// <summary>
@@ -120,7 +112,7 @@ namespace CmisSync.Lib
         /// <summary>
         /// Path where the synchronized folders are stored by default.
         /// </summary>
-        public string DefaultRepositoryRootFolderPath
+        public string DEFAULT_REPOSITORY_ROOT_FOLDER_PATH
         {
             get
             {
@@ -134,17 +126,19 @@ namespace CmisSync.Lib
         /// </summary>
         public Config(string fullPath)
         {
-            FullPath = fullPath;
-            ConfigPath = Path.GetDirectoryName(FullPath);
-            Console.WriteLine("FullPath:" + FullPath);
+            ConfigurationFileFullPath = fullPath;
+            ConfigurationDirectoryPath = Path.GetDirectoryName(ConfigurationFileFullPath);
+            Console.WriteLine("FullPath:" + ConfigurationFileFullPath);
 
             // Create configuration folder if it does not exist yet.
-            if (!Directory.Exists(ConfigPath))
-                Directory.CreateDirectory(ConfigPath);
+            if (!Directory.Exists(ConfigurationDirectoryPath))
+                Directory.CreateDirectory(ConfigurationDirectoryPath);
 
             // Create an empty XML configuration file if none is present yet.
-            if (!File.Exists(FullPath))
+            if (!File.Exists(ConfigurationFileFullPath))
+            {
                 CreateInitialConfigFile();
+            }
 
             // Load the XML configuration.
             try
@@ -161,17 +155,17 @@ namespace CmisSync.Lib
             }
             catch (XmlException)
             {
-                FileInfo file = new FileInfo(FullPath);
+                FileInfo file = new FileInfo(ConfigurationFileFullPath);
 
                 // If the XML configuration file exists but with file size zero, then recreate it.
                 if (file.Length == 0)
                 {
-                    File.Delete(FullPath);
+                    File.Delete(ConfigurationFileFullPath);
                     CreateInitialConfigFile();
                 }
                 else
                 {
-                    throw new XmlException(FullPath + " does not contain a valid config XML structure.");
+                    throw new XmlException(ConfigurationFileFullPath + " does not contain a valid config XML structure.");
                 }
 
             }
@@ -275,16 +269,16 @@ namespace CmisSync.Lib
             }
 
             // Check that the CmisSync root folder exists.
-            if (!Directory.Exists(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath))
+            if (!Directory.Exists(ConfigManager.CurrentConfig.DEFAULT_REPOSITORY_ROOT_FOLDER_PATH))
             {
-                Logger.Fatal(String.Format("Fetcher | ERROR - Cmis Default Folder {0} does not exist", ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath));
+                Logger.Fatal(String.Format("Fetcher | ERROR - Cmis Default Folder {0} does not exist", ConfigManager.CurrentConfig.DEFAULT_REPOSITORY_ROOT_FOLDER_PATH));
                 throw new DirectoryNotFoundException("Root folder don't exist !");
             }
 
             // Check that the folder is writable.
-            if (!CmisSync.Lib.Utils.HasWritePermissionOnDir(ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath))
+            if (!CmisSync.Lib.Utils.HasWritePermissionOnDir(ConfigManager.CurrentConfig.DEFAULT_REPOSITORY_ROOT_FOLDER_PATH))
             {
-                Logger.Fatal(String.Format("Fetcher | ERROR - Cmis Default Folder {0} is not writable", ConfigManager.CurrentConfig.DefaultRepositoryRootFolderPath));
+                Logger.Fatal(String.Format("Fetcher | ERROR - Cmis Default Folder {0} is not writable", ConfigManager.CurrentConfig.DEFAULT_REPOSITORY_ROOT_FOLDER_PATH));
                 throw new UnauthorizedAccessException("Root folder is not writable!");
             }
 
@@ -320,7 +314,7 @@ namespace CmisSync.Lib
         /// </summary>
         public string GetLogFilePath()
         {
-            return Path.Combine(ConfigPath, "debug_log.txt");
+            return Path.Combine(ConfigurationDirectoryPath, "debug_log.txt");
         }
 
         private string GetLogLevel()
@@ -339,7 +333,7 @@ namespace CmisSync.Lib
         public void Save()
         {
             XmlSerializer serializer = new XmlSerializer(typeof(SyncConfig));
-            using (TextWriter textWriter = new StreamWriter(FullPath))
+            using (TextWriter textWriter = new StreamWriter(ConfigurationFileFullPath))
             {
                 serializer.Serialize(textWriter, this.configXml);
             }
@@ -349,7 +343,7 @@ namespace CmisSync.Lib
         private void Load()
         {
             XmlSerializer deserializer = new XmlSerializer(typeof(SyncConfig));
-            using (TextReader textReader = new StreamReader(FullPath))
+            using (TextReader textReader = new StreamReader(ConfigurationFileFullPath))
             {
                 this.configXml = (SyncConfig)deserializer.Deserialize(textReader);
             }
@@ -602,10 +596,10 @@ namespace CmisSync.Lib
                 [XmlElement("ignoreFolder", IsNullable = true)]
                 public List<IgnoredFolder> IgnoredFolders { get; set; }
 
-                private long chunkSize = DefaultChunkSize;
+                private long chunkSize = DEFAULT_CHUNK_SIZE;
 
                 /// <summary></summary>
-                [XmlElement("chunkSize"), System.ComponentModel.DefaultValue(DefaultChunkSize)]
+                [XmlElement("chunkSize"), System.ComponentModel.DefaultValue(DEFAULT_CHUNK_SIZE)]
                 public long ChunkSize
                 {
                     get { return chunkSize; }
@@ -657,7 +651,7 @@ namespace CmisSync.Lib
                     int serial = 0;
                     do
                     {
-                        path = Path.Combine(ConfigManager.CurrentConfig.ConfigPath, name + ((serial != 0) ? "_" + serial : "") + ".cmissync");
+                        path = Path.Combine(ConfigManager.CurrentConfig.ConfigurationDirectoryPath, name + ((serial != 0) ? "_" + serial : "") + ".cmissync");
                         serial++;
                         if (serial > MAX_FILE_NAME_TRY) {
                             throw new System.InvalidOperationException("Unable to find a name for a new database");
