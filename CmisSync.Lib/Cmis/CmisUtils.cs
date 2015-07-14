@@ -335,7 +335,7 @@ namespace CmisSync.Lib.Cmis
         /// Guess the web address where files can be seen using a browser.
         /// Not bulletproof. It depends on the server, and on some servers there is no web UI at all.
         /// </summary>
-        static public string GetBrowsableURL(RepoInfo repo)
+        static public string GetBrowsableURL(Config.SyncConfig.LocalRepository repo)
         {
             if (null == repo)
             {
@@ -345,16 +345,16 @@ namespace CmisSync.Lib.Cmis
             // Case of Alfresco.
             string suffix1 = "alfresco/cmisatom";
             string suffix2 = "alfresco/service/cmis";
-            if (repo.Address.AbsoluteUri.EndsWith(suffix1) || repo.Address.AbsoluteUri.EndsWith(suffix2))
+            if (repo.RemoteUrl.AbsoluteUri.EndsWith(suffix1) || repo.RemoteUrl.AbsoluteUri.EndsWith(suffix2))
             {
                 // Detect suffix length.
                 int suffixLength = 0;
-                if (repo.Address.AbsoluteUri.EndsWith(suffix1))
+                if (repo.RemoteUrl.AbsoluteUri.EndsWith(suffix1))
                     suffixLength = suffix1.Length;
-                if (repo.Address.AbsoluteUri.EndsWith(suffix2))
+                if (repo.RemoteUrl.AbsoluteUri.EndsWith(suffix2))
                     suffixLength = suffix2.Length;
 
-                string root = repo.Address.AbsoluteUri.Substring(0, repo.Address.AbsoluteUri.Length - suffixLength);
+                string root = repo.RemoteUrl.AbsoluteUri.Substring(0, repo.RemoteUrl.AbsoluteUri.Length - suffixLength);
                 if (repo.RemotePath.StartsWith("/Sites"))
                 {
                     // Case of Alfresco Share.
@@ -399,13 +399,13 @@ namespace CmisSync.Lib.Cmis
                 try
                 {
                     // Connect to the CMIS repository.
-                    ISession session = Auth.Auth.GetCmisSession(repo.Address.ToString(), repo.User, repo.Password.ToString(), repo.RepoID);
+                    ISession session = Auth.Auth.GetCmisSession(repo.RemoteUrl.ToString(), repo.UserName, repo.Password.ToString(), repo.RepositoryId);
 
                     if (session.RepositoryInfo.ThinClientUri == null
                         || String.IsNullOrEmpty(session.RepositoryInfo.ThinClientUri.ToString()))
                     {
-                        Logger.Error("CmisUtils GetBrowsableURL | Repository does not implement ThinClientUri: " + repo.Address.AbsoluteUri);
-                        return repo.Address.AbsoluteUri + repo.RemotePath;
+                        Logger.Error("CmisUtils GetBrowsableURL | Repository does not implement ThinClientUri: " + repo.RemoteUrl.AbsoluteUri);
+                        return repo.RemoteUrl.AbsoluteUri + repo.RemotePath;
                     }
                     else
                     {
@@ -417,7 +417,7 @@ namespace CmisSync.Lib.Cmis
                 {
                     Logger.Error("CmisUtils GetBrowsableURL | Exception " + e.Message, e);
                     // Server down or authentication problem, no way to know the right URL, so just open server.
-                    return repo.Address.AbsoluteUri + repo.RemotePath;
+                    return repo.RemoteUrl.AbsoluteUri + repo.RemotePath;
                 }
             }
         }

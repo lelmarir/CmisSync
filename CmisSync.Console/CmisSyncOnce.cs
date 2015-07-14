@@ -44,7 +44,7 @@ namespace CmisSync.Console
             else
             {
                 Config config = ConfigManager.CurrentConfig;
-                foreach (CmisSync.Lib.Config.SyncConfig.Folder folder in config.Folders)
+                foreach (CmisSync.Lib.Config.SyncConfig.LocalRepository folder in config.LocalRepositories)
                 {
                     RepoInfo repoInfo = folder.GetRepoInfo();
                     once.repos.Add(repoInfo);
@@ -61,7 +61,7 @@ namespace CmisSync.Console
         private void AddSynchronizedFolder(string folderName)
 		{
 			Config config = ConfigManager.CurrentConfig;
-            CmisSync.Lib.Config.SyncConfig.Folder folder = config.GetFolder(folderName);
+            CmisSync.Lib.Config.SyncConfig.LocalRepository folder = config.GetFolder(folderName);
             if (folder == null)
             {
                 System.Console.WriteLine("No folder found with this name: " + folderName);

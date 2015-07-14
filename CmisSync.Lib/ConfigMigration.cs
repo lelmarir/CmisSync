@@ -132,7 +132,7 @@ namespace CmisSync.Lib.Sync
             bool modified = false;
 
             // Loop through all repositories.
-            foreach (CmisSync.Lib.Config.SyncConfig.Folder folder in ConfigManager.CurrentConfig.Folders)
+            foreach (CmisSync.Lib.Config.SyncConfig.LocalRepository folder in ConfigManager.CurrentConfig.LocalRepositories)
             {
                 string oldUrl = folder.RemoteUrl.ToString();
 
@@ -143,7 +143,7 @@ namespace CmisSync.Lib.Sync
 
                     if (IsAlfresco42OrLater(folder, newUrl))
                     {
-                        folder.RemoteUrl = new CmisSync.Lib.Config.XmlUri(new Uri(newUrl));
+                        folder.RemoteUrl = new CmisSync.Lib.XmlUri(new Uri(newUrl));
                         modified = true;
                     }
                 }
@@ -155,7 +155,7 @@ namespace CmisSync.Lib.Sync
             }
         }
 
-        private static bool IsAlfresco42OrLater(CmisSync.Lib.Config.SyncConfig.Folder folder, string newUrl)
+        private static bool IsAlfresco42OrLater(CmisSync.Lib.Config.SyncConfig.LocalRepository folder, string newUrl)
         {
             try
             {
@@ -164,7 +164,7 @@ namespace CmisSync.Lib.Sync
                     folder.RemotePath,
                     newUrl,
                     folder.UserName,
-                    Crypto.Deobfuscate(folder.ObfuscatedPassword));
+                    Crypto.Deobfuscate(folder.Password.ObfuscatedPassword));
 
                 return true;
             }

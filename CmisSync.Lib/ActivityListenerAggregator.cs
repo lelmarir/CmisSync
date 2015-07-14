@@ -82,9 +82,9 @@ namespace CmisSync.Lib
         /// <summary>
         /// Call this method to indicate that is in error state.
         /// </summary>
-        public void ActivityError(Tuple<string, Exception> error)
+        public void ActivityError(Config.SyncConfig.LocalRepository repo, Exception error)
         {
-            overall.ActivityError(error);
+            overall.ActivityError(repo, error);
         }
     }
 }

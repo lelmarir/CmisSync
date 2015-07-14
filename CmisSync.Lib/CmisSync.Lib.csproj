@@ -109,6 +109,7 @@
     <Compile Include="ActivityListenerAggregator.cs" />
     <Compile Include="SyncItem.cs" />
     <Compile Include="Database\DatabaseMigrationToVersion3.cs" />
+    <Compile Include="XmlUri.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CmisSync.Auth\CmisSync.Auth.csproj">

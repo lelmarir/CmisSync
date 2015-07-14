@@ -215,16 +215,16 @@ namespace CmisSync.Lib
         /// Check whether the directory is worth syncing or not.
         /// Directories that are not worth syncing include ignored, system, and hidden folders.
         /// </summary>
-        public static bool IsDirectoryWorthSyncing(string localDirectory, RepoInfo repoInfo)
+        public static bool IsDirectoryWorthSyncing(string localDirectory, Config.SyncConfig.LocalRepository repoInfo)
         {
-            if (!localDirectory.StartsWith(repoInfo.TargetDirectory))
+            if (!localDirectory.StartsWith(repoInfo.LocalPath))
             {
-                Logger.WarnFormat("Local directory is outside repo target directory.  local={0}, repo={1}", localDirectory, repoInfo.TargetDirectory);
+                Logger.WarnFormat("Local directory is outside repo target directory.  local={0}, repo={1}", localDirectory, repoInfo.LocalPath);
                 return false;
             }
 
             //Check for ignored path...
-            string path = localDirectory.Substring(repoInfo.TargetDirectory.Length).Replace("\\", "/");
+            string path = localDirectory.Substring(repoInfo.LocalPath.Length).Replace("\\", "/");
             if (repoInfo.isPathIgnored(path))
             {
                 Logger.DebugFormat("Skipping {0}: hidden folder", localDirectory);
@@ -256,7 +256,7 @@ namespace CmisSync.Lib
         /// Check whether the file is worth syncing or not.
         /// This optionally excludes blank files or files too large.
         /// </summary>
-        public static bool IsFileWorthSyncing(string filepath, RepoInfo repoInfo)
+        public static bool IsFileWorthSyncing(string filepath, Config.SyncConfig.LocalRepository repoInfo)
         {
             if (File.Exists(filepath))
             {
@@ -303,7 +303,7 @@ namespace CmisSync.Lib
         /// Check whether the file is worth syncing or not.
         /// Files that are not worth syncing include temp files, locks, etc.
         /// </summary>
-        public static Boolean WorthSyncing(string localDirectory, string filename, RepoInfo repoInfo)
+        public static Boolean WorthSyncing(string localDirectory, string filename, Config.SyncConfig.LocalRepository repoInfo)
         {
             return IsFilenameWorthSyncing(localDirectory, filename) &&
                 IsDirectoryWorthSyncing(localDirectory, repoInfo) &&

@@ -38,7 +38,7 @@ namespace CmisSync.Lib.Database
         /// <param name="syncFolder">File path.</param>
         /// <param name="connection">Connection.</param>
         /// <param name="currentVersion">Current database schema version.</param>
-        public void Migrate(Config.SyncConfig.Folder syncFolder, SQLiteConnection connection, int currentVersion)
+        public void Migrate(Config.SyncConfig.LocalRepository syncFolder, SQLiteConnection connection, int currentVersion)
         {
             // Add columns and other database schema manipulation.
             MigrateSchema(syncFolder, connection);
@@ -55,7 +55,7 @@ namespace CmisSync.Lib.Database
         /// </summary>
         /// <param name="syncFolder">Folder name.</param>
         /// <param name="connection"></param>
-        public static void MigrateSchema(Config.SyncConfig.Folder syncFolder, SQLiteConnection connection)
+        public static void MigrateSchema(Config.SyncConfig.LocalRepository syncFolder, SQLiteConnection connection)
         {
             // Add columns
             var filesTableColumns = GetColumnNames(connection, "files");
@@ -112,7 +112,7 @@ namespace CmisSync.Lib.Database
         /// <summary>
         /// Fill the data which is missing due to new columns in the database.
         /// </summary>
-        public static void FillMissingData(Config.SyncConfig.Folder syncFolder, SQLiteConnection connection)
+        public static void FillMissingData(Config.SyncConfig.LocalRepository syncFolder, SQLiteConnection connection)
         {
             Utils.NotifyUser("CmisSync needs to upgrade its own local data for folder \"" + syncFolder.RepositoryId +
                 "\".\nPlease stay on the network during that time, sorry for the inconvenience." +
@@ -122,7 +122,7 @@ namespace CmisSync.Lib.Database
             var session = Auth.Auth.GetCmisSession(
                               ((Uri)syncFolder.RemoteUrl).ToString(),
                               syncFolder.UserName,
-                              Crypto.Deobfuscate(syncFolder.ObfuscatedPassword),
+                              Crypto.Deobfuscate(syncFolder.Password.ObfuscatedPassword),
                               syncFolder.RepositoryId);
 
             var filters = new HashSet<string>();

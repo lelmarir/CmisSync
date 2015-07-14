@@ -76,7 +76,7 @@ namespace CmisSync.Lib
         /// <param name="path"></param>
         /// <param name="repoInfo"></param>
         /// <returns></returns>
-        public static SyncItem CreateFromLocalPath(string path, RepoInfo repoInfo)
+        public static SyncItem CreateFromLocalPath(string path, Config.SyncConfig.LocalRepository repoInfo)
         {
             return new LocalPathSyncItem(path, repoInfo);
         }
@@ -86,7 +86,7 @@ namespace CmisSync.Lib
         /// <param name="fileName"></param>
         /// <param name="repoInfo"></param>
         /// <returns></returns>
-        public static SyncItem CreateFromLocalPath(string folder, string fileName, RepoInfo repoInfo)
+        public static SyncItem CreateFromLocalPath(string folder, string fileName, Config.SyncConfig.LocalRepository repoInfo)
         {
             return new LocalPathSyncItem(Path.Combine(folder, fileName), repoInfo);
         }
@@ -95,7 +95,7 @@ namespace CmisSync.Lib
         /// <param name="path"></param>
         /// <param name="repoInfo"></param>
         /// <returns></returns>
-        public static SyncItem CreateFromRemotePath(string path, RepoInfo repoInfo)
+        public static SyncItem CreateFromRemotePath(string path, Config.SyncConfig.LocalRepository repoInfo)
         {
             return new RemotePathSyncItem(path, repoInfo);
         }
@@ -105,7 +105,7 @@ namespace CmisSync.Lib
         /// <param name="fileName"></param>
         /// <param name="repoInfo"></param>
         /// <returns></returns>
-        public static SyncItem CreateFromRemotePath(string folder, string fileName, RepoInfo repoInfo)
+        public static SyncItem CreateFromRemotePath(string folder, string fileName, Config.SyncConfig.LocalRepository repoInfo)
         {
             return new RemotePathSyncItem(Path.Combine(folder, fileName), repoInfo);
         }
@@ -115,7 +115,7 @@ namespace CmisSync.Lib
         /// <param name="remoteFileName"></param>
         /// <param name="repoInfo"></param>
         /// <returns></returns>
-        public static SyncItem CreateFromLocalFolderAndRemoteName(string localFolder, string remoteFileName, RepoInfo repoInfo)
+        public static SyncItem CreateFromLocalFolderAndRemoteName(string localFolder, string remoteFileName, Config.SyncConfig.LocalRepository repoInfo)
         {
             return new LocalPathSyncItem(localFolder, remoteFileName, repoInfo);
         }
@@ -125,7 +125,7 @@ namespace CmisSync.Lib
         /// <param name="LocalFileName"></param>
         /// <param name="repoInfo"></param>
         /// <returns></returns>
-        public static SyncItem CreateFromRemoteFolderAndLocalName(string remoteFolder, string LocalFileName, RepoInfo repoInfo)
+        public static SyncItem CreateFromRemoteFolderAndLocalName(string remoteFolder, string LocalFileName, Config.SyncConfig.LocalRepository repoInfo)
         {
             return new RemotePathSyncItem(remoteFolder, LocalFileName, repoInfo);
         }
@@ -148,9 +148,9 @@ namespace CmisSync.Lib
         /// <summary></summary>
         /// <param name="localPath"></param>
         /// <param name="repoInfo"></param>
-        public LocalPathSyncItem(string localPath, RepoInfo repoInfo)
+        public LocalPathSyncItem(string localPath, Config.SyncConfig.LocalRepository repoInfo)
         {
-            this.localRoot = repoInfo.TargetDirectory;
+            this.localRoot = repoInfo.LocalPath;
             this.remoteRoot = repoInfo.RemotePath;
 
             this.localPath = localPath;
@@ -165,9 +165,9 @@ namespace CmisSync.Lib
         /// <param name="localFolder"></param>
         /// <param name="remoteRelativePath"></param>
         /// <param name="repoInfo"></param>
-        public LocalPathSyncItem(string localFolder, string remoteRelativePath, RepoInfo repoInfo)
+        public LocalPathSyncItem(string localFolder, string remoteRelativePath, Config.SyncConfig.LocalRepository repoInfo)
         {
-            this.localRoot = repoInfo.TargetDirectory;
+            this.localRoot = repoInfo.LocalPath;
             this.remoteRoot = repoInfo.RemotePath;
 
             this.localPath = Path.Combine(localFolder, PathRepresentationConverter.RemoteToLocal(remoteRelativePath));
@@ -257,9 +257,9 @@ namespace CmisSync.Lib
         /// <summary></summary>
         /// <param name="remotePath"></param>
         /// <param name="repoInfo"></param>
-        public RemotePathSyncItem(string remotePath, RepoInfo repoInfo)
+        public RemotePathSyncItem(string remotePath, Config.SyncConfig.LocalRepository repoInfo)
         {
-            this.localRoot = PathRepresentationConverter.RemoteToLocal(repoInfo.TargetDirectory);
+            this.localRoot = PathRepresentationConverter.RemoteToLocal(repoInfo.LocalPath);
             this.remoteRoot = PathRepresentationConverter.LocalToRemote(repoInfo.RemotePath);
 
             this.remotePath = remotePath;
@@ -274,9 +274,9 @@ namespace CmisSync.Lib
         /// <param name="remoteFolder"></param>
         /// <param name="localRelativePath"></param>
         /// <param name="repoInfo"></param>
-        public RemotePathSyncItem(string remoteFolder, string localRelativePath, RepoInfo repoInfo)
+        public RemotePathSyncItem(string remoteFolder, string localRelativePath, Config.SyncConfig.LocalRepository repoInfo)
         {
-            this.localRoot = repoInfo.TargetDirectory;
+            this.localRoot = repoInfo.LocalPath;
             this.remoteRoot = repoInfo.RemotePath;
 
             this.remotePath = Path.Combine(remoteFolder, PathRepresentationConverter.LocalToRemote(localRelativePath));

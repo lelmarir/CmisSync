@@ -94,7 +94,7 @@ namespace CmisSync
         /// <summary>
         /// Update suspended sync folder event.
         /// </summary>
-        public delegate void UpdateSuspendSyncFolderEventHandler(string reponame);
+        public delegate void UpdateSuspendSyncFolderEventHandler(Config.SyncConfig.LocalRepository repo);
 
         /// <summary>
         /// 
@@ -129,32 +129,32 @@ namespace CmisSync
         /// <summary>
         /// The list of remote folders to show in the CmisSync tray menu.
         /// </summary>
-        public string[] Folders
+        public Config.SyncConfig.LocalRepository[] Folders
         {
             get
             {
-                int overflow_count = (Program.Controller.Folders.Count - MenuOverflowThreshold);
+                int overflow_count = (Program.Controller.LocalRepositories.Count - MenuOverflowThreshold);
 
                 if (overflow_count >= MinSubmenuOverflowCount)
-                    return Program.Controller.Folders.GetRange(0, MenuOverflowThreshold).ToArray();
+                    return Program.Controller.LocalRepositories.GetRange(0, MenuOverflowThreshold).ToArray();
                 else
-                    return Program.Controller.Folders.ToArray();
+                    return Program.Controller.LocalRepositories.ToArray();
             }
         }
 
         /// <summary>
         /// The list of remote folders to show in the CmisSync tray's overflow menu.
         /// </summary>
-        public string[] OverflowFolders
+        public Config.SyncConfig.LocalRepository[] OverflowFolders
         {
             get
             {
-                int overflow_count = (Program.Controller.Folders.Count - MenuOverflowThreshold);
+                int overflow_count = (Program.Controller.LocalRepositories.Count - MenuOverflowThreshold);
 
                 if (overflow_count >= MinSubmenuOverflowCount)
-                    return Program.Controller.Folders.GetRange(MenuOverflowThreshold, overflow_count).ToArray();
+                    return Program.Controller.LocalRepositories.GetRange(MenuOverflowThreshold, overflow_count).ToArray();
                 else
-                    return new string[0];
+                    return new Config.SyncConfig.LocalRepository[0];
             }
         }
 
@@ -202,7 +202,7 @@ namespace CmisSync
                 {
                     CurrentState = IconState.Idle;
 
-                    if (Program.Controller.Folders.Count == 0)
+                    if (Program.Controller.LocalRepositories.Count == 0)
                         StateText = Properties_Resources.Welcome;
                     else
                         StateText = Properties_Resources.FilesUpToDate;
@@ -220,7 +220,7 @@ namespace CmisSync
                 {
                     CurrentState = IconState.Idle;
 
-                    if (Program.Controller.Folders.Count == 0)
+                    if (Program.Controller.LocalRepositories.Count == 0)
                         StateText = Properties_Resources.Welcome;
                     else
                         StateText = Properties_Resources.FilesUpToDate;
@@ -257,15 +257,11 @@ namespace CmisSync
             };
 
             // Error.
-            Program.Controller.OnError += delegate(Tuple<string, Exception> error)
+            Program.Controller.OnError += delegate(Config.SyncConfig.LocalRepository repo, Exception error)
             {
-                //FIXME: why a Tuple? We should get delegate(ErrorEvent event) or delegate(string repoName, Exception error)
-                String reponame = error.Item1;
-                Exception exception = error.Item2;
+                Logger.Error(String.Format("Error syncing '{0}': {1}", repo, error.Message), error);
 
-                Logger.Error(String.Format("Error syncing '{0}': {1}", reponame, exception.Message), exception);
-
-                string message = String.Format(Properties_Resources.SyncError, reponame, exception.Message);
+                string message = String.Format(Properties_Resources.SyncError, repo, error.Message);
 
                 IconState PreviousState = CurrentState;
                 CurrentState = IconState.Error;
@@ -280,11 +276,11 @@ namespace CmisSync
                 UpdateMenuEvent(CurrentState);
 #endif
 
-                if (exception is PermissionDeniedException)
+                if (error is PermissionDeniedException)
                 {
                     //FIXME: why it get suspended? Instead i should ask the user if the password has changed and he want to enter a new one
                     //Suspend sync...
-                    SuspendSyncClicked(reponame);
+                    SuspendSyncClicked(repo);
                 }
 
                 if (PreviousState != IconState.Error)
@@ -302,33 +298,32 @@ namespace CmisSync
         /// <summary>
         /// With the local file explorer, open the folder where the local synchronized folders are.
         /// </summary>
-        public void LocalFolderClicked(string reponame)
+        public void LocalFolderClicked(Config.SyncConfig.LocalRepository repo)
         {
-            Program.Controller.OpenCmisSyncFolder(reponame);
+            Program.Controller.OpenCmisSyncFolder(repo);
         }
 
         /// <summary>
         /// With the default web browser, open the remote folder of a CmisSync synchronized folder.
         /// </summary>
-        public void RemoteFolderClicked(string reponame)
+        public void RemoteFolderClicked(Config.SyncConfig.LocalRepository repo)
         {
-            Program.Controller.OpenRemoteFolder(reponame);
+            Program.Controller.OpenRemoteFolder(repo);
         }
 
         /// <summary>
         /// With the default web browser, open the remote folder of a CmisSync synchronized folder.
         /// </summary>
-        public void SettingsClicked(string reponame)
+        public void SettingsClicked(Config.SyncConfig.LocalRepository repo)
         {
-            CmisSync.Lib.Config.SyncConfig.Folder repository = ConfigManager.CurrentConfig.GetFolder(reponame);
-            Program.UI.Setup.Controller.saved_repository = reponame;
-            if (repository != null)
+            Program.UI.Setup.Controller.saved_repository = repo.DisplayName;
+            if (repo != null)
             {
-                Program.UI.Setup.Controller.saved_user = repository.UserName;
-                Program.UI.Setup.Controller.saved_remote_path = repository.RemotePath;
-                Program.UI.Setup.Controller.saved_address = repository.RemoteUrl;
-                Program.UI.Setup.Controller.saved_sync_interval = (int)repository.PollInterval;
-                Program.UI.Setup.Controller.saved_syncatstartup = repository.SyncAtStartup;
+                Program.UI.Setup.Controller.saved_user = repo.UserName;
+                Program.UI.Setup.Controller.saved_remote_path = repo.RemotePath;
+                Program.UI.Setup.Controller.saved_address = repo.RemoteUrl;
+                Program.UI.Setup.Controller.saved_sync_interval = (int)repo.PollInterval;
+                Program.UI.Setup.Controller.saved_syncatstartup = repo.SyncAtStartup;
             }
             Program.Controller.ShowSetupWindow(PageType.Settings);
         }
@@ -368,17 +363,17 @@ namespace CmisSync
         /// <summary>
         /// Suspend synchronization for a particular folder.
         /// </summary>
-        public void SuspendSyncClicked(string reponame)
+        public void SuspendSyncClicked(Config.SyncConfig.LocalRepository repo)
         {
-            Program.Controller.SuspendOrResumeRepositorySynchronization(reponame);
+            Program.Controller.SuspendOrResumeRepositorySynchronization(repo);
             //TODO: the StatusIcon should listen the controlleo or the repository for Suspended changes instead of call UpdateSuspendSyncFolderEvent
-            UpdateSuspendSyncFolderEvent(reponame);
+            UpdateSuspendSyncFolderEvent(repo);
         }
 
         /// <summary>
         /// Tries to remove a given repo from sync
         /// </summary>
-        public void RemoveFolderFromSyncClicked(string reponame)
+        public void RemoveFolderFromSyncClicked(Config.SyncConfig.LocalRepository repo)
         {
             #if __COCOA__
             Program.Controller.RemoveRepositoryFromSync(reponame);
@@ -397,10 +392,10 @@ namespace CmisSync
                 worker.DoWork += new DoWorkEventHandler(
                     delegate(Object o, DoWorkEventArgs args)
                     {
-                        Program.Controller.RemoveRepositoryFromSync((string)args.Argument);
+                        Program.Controller.RemoveRepositoryFromSync((Config.SyncConfig.LocalRepository)args.Argument);
                     }
                 );
-                worker.RunWorkerAsync(reponame);
+                worker.RunWorkerAsync(repo);
             }
             #endif
         }
@@ -408,17 +403,9 @@ namespace CmisSync
         /// <summary>
         /// Manual sync clicked.
         /// </summary>
-        public void ManualSyncClicked(string reponame)
+        public void ManualSyncClicked(Config.SyncConfig.LocalRepository repo)
         {
-            Program.Controller.ManualSync(reponame);
-        }
-
-        /// <summary>
-        /// Edit a particular folder.
-        /// </summary>
-        public void EditFolderClicked(string reponame)
-        {
-			SettingsClicked (reponame);
+            Program.Controller.ManualSync(repo);
         }
 
         /// <summary>

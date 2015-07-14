@@ -149,33 +149,28 @@ namespace CmisSync
         /// <summary>
         /// With Windows Explorer, open the local folder of a CmisSync synchronized folder.
         /// </summary>
-        /// <param name="name">Name of the synchronized folder</param>
-        public void OpenCmisSyncFolder(string name)
+        /// <param name="repo">Name of the synchronized folder</param>
+        public void OpenCmisSyncFolder(Config.SyncConfig.LocalRepository repo)
         {
-            Config.SyncConfig.Folder folder = ConfigManager.CurrentConfig.GetFolder(name);
-            if (folder != null)
-                Utils.OpenFolder(folder.LocalPath);
-            else if (String.IsNullOrWhiteSpace(name))
-                OpenCmisSyncFolder();
+            if (repo != null)
+                Utils.OpenFolder(repo.LocalPath);
             else
-                Logger.Warn("Could not find requested config for \"" + name + "\"");
+                Logger.Warn("Could not find requested config for \"" + repo + "\"");
         }
 
         /// <summary>
         /// With the default web browser, open the remote folder of a CmisSync synchronized folder.
         /// </summary>
-        /// <param name="name">Name of the synchronized folder</param>
-        public void OpenRemoteFolder(string name)
+        /// <param name="repo">Name of the synchronized folder</param>
+        public void OpenRemoteFolder(Config.SyncConfig.LocalRepository repo)
         {
-            Config.SyncConfig.Folder folder = ConfigManager.CurrentConfig.GetFolder(name);
-            if (folder != null)
+            if (repo != null)
             {
-                RepoInfo repo = folder.GetRepoInfo();
                 Process.Start(CmisUtils.GetBrowsableURL(repo));
             }
             else
             {
-                Logger.Warn("Could not find requested config for \"" + name + "\"");
+                Logger.Warn("Could not find requested config for \"" + repo + "\"");
             }
         }
 

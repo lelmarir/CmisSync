@@ -28,7 +28,7 @@ namespace CmisSync.Lib
         /// <summary>
         /// Call this method to indicate that is in error state.
         /// </summary>
-        void ActivityError(Tuple<string, Exception> error);
+        void ActivityError(Config.SyncConfig.LocalRepository repo, Exception error);
     }
 
 

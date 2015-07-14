@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Serialization;
+using System.Xml;
 
 namespace CmisSync.Auth
 {
@@ -98,6 +100,7 @@ namespace CmisSync.Auth
         /// <summary>
         /// Gets and sets the internal saved and obfuscated password
         /// </summary>
+        [XmlAttribute("obfuscated")]
         public string ObfuscatedPassword { get { return password; } set { password = value; } }
     }
 }

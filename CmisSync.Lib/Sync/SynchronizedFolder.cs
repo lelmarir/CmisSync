@@ -121,7 +121,7 @@ namespace CmisSync.Lib.Sync
             /// <summary>
             /// Configuration of the CmisSync synchronized folder, as defined in the XML configuration file.
             /// </summary>
-            private RepoInfo repoinfo;
+            private Config.SyncConfig.LocalRepository repoinfo;
 
             /// <summary>
             /// Link to parent object.
@@ -147,7 +147,7 @@ namespace CmisSync.Lib.Sync
             /// <summary>
             ///  Constructor for Repo (at every launch of CmisSync)
             /// </summary>
-            public SynchronizedFolder(RepoInfo repoInfo, RepoBase repoCmis, IActivityListener activityListener)
+            public SynchronizedFolder(Config.SyncConfig.LocalRepository repoInfo, RepoBase repoCmis, IActivityListener activityListener)
             {
                 this.activityListener = activityListener;
 
@@ -162,14 +162,14 @@ namespace CmisSync.Lib.Sync
                 suspended = this.repoinfo.IsSuspended;
 
                 // Database is the user's AppData/Roaming
-                database = new Database.Database(repoinfo.CmisDatabase);
+                database = new Database.Database(repoinfo.CmisDatabasePath);
 
                 // Get path on remote repository.
                 remoteFolderPath = repoInfo.RemotePath;
 
                 if (Logger.IsInfoEnabled)
                 {
-                    foreach (string ignoredFolder in repoInfo.getIgnoredPaths())
+                    foreach (Config.IgnoredFolder ignoredFolder in repoInfo.IgnoredFolders)
                     {
                         Logger.Info("The folder \"" + ignoredFolder + "\" will be ignored");
                     }
@@ -213,7 +213,8 @@ namespace CmisSync.Lib.Sync
             /// <summary>
             ///  Update Settings.
             /// </summary>
-            public void UpdateSettings(RepoInfo repoInfo)
+            //TODO: is this sill needed?
+            public void UpdateSettings(Config.SyncConfig.LocalRepository repoInfo)
             {
                 //Cancel sync before settings update.
                 CancelSync();
@@ -273,7 +274,7 @@ namespace CmisSync.Lib.Sync
             public void Connect()
             {
                 // Create session.
-                session = Auth.Auth.GetCmisSession(repoinfo.Address.ToString(), repoinfo.User, repoinfo.Password.ToString(), repoinfo.RepoID);
+                session = Auth.Auth.GetCmisSession(repoinfo.RemoteUrl.ToString(), repoinfo.UserName, repoinfo.Password.ToString(), repoinfo.RepositoryId);
                 Logger.Debug("Created CMIS session: " + session.ToString());
                 
                 // Detect repository capabilities.
@@ -281,10 +282,9 @@ namespace CmisSync.Lib.Sync
                         || session.RepositoryInfo.Capabilities.ChangesCapability == CapabilityChanges.ObjectIdsOnly;
                 IsGetDescendantsSupported = session.RepositoryInfo.Capabilities.IsGetDescendantsSupported == true;
                 IsGetFolderTreeSupported = session.RepositoryInfo.Capabilities.IsGetFolderTreeSupported == true;
-                Config.SyncConfig.Folder folder = ConfigManager.CurrentConfig.GetFolder(this.repoinfo.Name);
-                if (folder != null)
+                if (repoinfo != null)
                 {
-                    Config.Feature features = folder.SupportedFeatures;
+                    Config.Feature features = repoinfo.SupportedFeatures;
                     if (features != null)
                     {
                         if (IsGetDescendantsSupported && features.GetDescendantsSupport == false)
@@ -422,7 +422,7 @@ namespace CmisSync.Lib.Sync
                         remoteFolder = (IFolder)session.GetObjectByPath(remoteFolderPath);
                     }
 
-                    string localFolder = repoinfo.TargetDirectory;
+                    string localFolder = repoinfo.LocalPath;
 
                     if (firstSync)
                     {
@@ -483,7 +483,7 @@ namespace CmisSync.Lib.Sync
             {
                 if (IsSyncing())
                 {
-                    Logger.Debug("Sync already running in background: " + repoinfo.TargetDirectory);
+                    Logger.Debug("Sync already running in background: " + repoinfo.LocalPath);
                     return;
                 }
 
@@ -512,7 +512,7 @@ namespace CmisSync.Lib.Sync
             {
                 if (IsSyncing())
                 {
-                    Logger.Debug("Sync already running in background: " + repoinfo.TargetDirectory);
+                    Logger.Debug("Sync already running in background: " + repoinfo.LocalPath);
                     return;
                 }
 
@@ -786,7 +786,7 @@ namespace CmisSync.Lib.Sync
                     // TODO warn if local changes in the file.
                     if (File.Exists(syncItem.LocalPath))
                     {
-                        string conflictFilename = Utils.CreateConflictFilename(syncItem.LocalPath, repoinfo.User);
+                        string conflictFilename = Utils.CreateConflictFilename(syncItem.LocalPath, repoinfo.UserName);
                         Logger.Warn("Local file \"" + syncItem.LocalPath + "\" has been renamed to \"" + conflictFilename + "\"");
                         File.Move(syncItem.LocalPath, conflictFilename);
                     }
@@ -926,7 +926,7 @@ namespace CmisSync.Lib.Sync
                         if (database.ContainsFile(syncItem))
                         {
                             long retries = database.GetOperationRetryCounter(syncItem.LocalPath, Database.Database.OperationType.DELETE);
-                            if (retries <= repoinfo.MaxDeletionRetries)
+                            if (retries <= repoinfo.DeletionRetries)
                             {
                                 // File has been recently removed locally, so remove it from server too.
                                 Logger.Info("Removing locally deleted file on server: " + syncItem.LocalPath);  //?
@@ -946,7 +946,7 @@ namespace CmisSync.Lib.Sync
                             }
                             else
                             {
-                                Logger.Info(String.Format("Skipped deletion of remote file {0} because of too many failed retries ({1} max={2})", syncItem.RemotePath, retries, repoinfo.MaxDeletionRetries));  // ???
+                                Logger.Info(String.Format("Skipped deletion of remote file {0} because of too many failed retries ({1} max={2})", syncItem.RemotePath, retries, repoinfo.DeletionRetries));  // ???
                             }
                         }
                         else
@@ -1047,7 +1047,7 @@ namespace CmisSync.Lib.Sync
                     DotCMIS.Data.IContentStream contentStream = null;
                     string filepath = syncItem.LocalPath;
                     string tmpfilepath = filepath + ".sync";
-                    if (database.GetOperationRetryCounter(filepath, Database.Database.OperationType.DOWNLOAD) > repoinfo.MaxDownloadRetries)
+                    if (database.GetOperationRetryCounter(filepath, Database.Database.OperationType.DOWNLOAD) > repoinfo.DownloadRetries)
                     {
                         Logger.Info(String.Format("Skipping download of file {0} because of too many failed ({1}) downloads", database.GetOperationRetryCounter(filepath, Database.Database.OperationType.DOWNLOAD)));
                         return true;
@@ -1145,7 +1145,7 @@ namespace CmisSync.Lib.Sync
                             {
                                 Logger.Info(String.Format("Conflict with file: {0}", syncItem.RemoteFileName));
                                 // Rename local file with a conflict suffix.
-                                string conflictFilename = Utils.CreateConflictFilename(filepath, repoinfo.User);
+                                string conflictFilename = Utils.CreateConflictFilename(filepath, repoinfo.UserName);
                                 Logger.Debug(String.Format("Renaming conflicted local file {0} to {1}", filepath, conflictFilename));
                                 File.Move(filepath, conflictFilename);
 
@@ -1754,7 +1754,7 @@ namespace CmisSync.Lib.Sync
                     while (repo.Status == SyncStatus.Suspend)
                     {
                         suspended = true;
-                        Logger.DebugFormat("Sync of {0} is suspend, next retry in {1}ms", repoinfo.Name, SYNC_SUSPEND_SLEEP_INTERVAL);
+                        Logger.DebugFormat("Sync of {0} is suspend, next retry in {1}ms", repoinfo.DisplayName, SYNC_SUSPEND_SLEEP_INTERVAL);
                         System.Threading.Thread.Sleep(SYNC_SUSPEND_SLEEP_INTERVAL);
 
                         if (syncWorker.CancellationPending)

@@ -134,19 +134,19 @@ namespace CmisSync
             };
 
             // Repo Submenu.
-            Controller.UpdateSuspendSyncFolderEvent += delegate(string reponame)
+            Controller.UpdateSuspendSyncFolderEvent += delegate(Config.SyncConfig.LocalRepository repo)
             {
                 if (IsHandleCreated)
                 {
                     BeginInvoke((Action)delegate
                     {
-                        ToolStripMenuItem repoitem = (ToolStripMenuItem)this.traymenu.Items["tsmi" + reponame];
+                        ToolStripMenuItem repoitem = (ToolStripMenuItem)this.traymenu.Items["tsmi" + repo];
                         ToolStripMenuItem pauseitem = (ToolStripMenuItem)repoitem.DropDownItems.Find("pause", false)[0];
                         ToolStripMenuItem syncitem = (ToolStripMenuItem)repoitem.DropDownItems.Find("sync", false)[0];
 
                         foreach (RepoBase aRepo in Program.Controller.Repositories)
                         {
-                            if (aRepo.Name == reponame)
+                            if (aRepo.RepoInfo == repo)
                             {
                                 setSyncItemState(pauseitem, syncitem, aRepo.Status);
                                 break;
@@ -232,13 +232,13 @@ namespace CmisSync
             // Create a menu item per synchronized folder.
             if (Controller.Folders.Length > 0)
             {
-                foreach (string folderName in Controller.Folders)
+                foreach (Config.SyncConfig.LocalRepository localRepo in Controller.Folders)
                 {
                     // Main item.
                     ToolStripMenuItem subfolderItem = new ToolStripMenuItem()
                     {
-                        Text = folderName,
-                        Name = "tsmi" + folderName,
+                        Text = localRepo.DisplayName,
+                        Name = "tsmi" + localRepo,
                         Image = UIHelpers.GetBitmap("folder"),
                     };
 
@@ -249,7 +249,7 @@ namespace CmisSync
                         Name = "openLocal",
                         Image = UIHelpers.GetBitmap("folder"),
                     };
-                    openLocalFolderItem.Click += OpenLocalFolderDelegate(folderName);
+                    openLocalFolderItem.Click += OpenLocalFolderDelegate(localRepo);
 
                     // Sub-item: open remotely.
                     ToolStripMenuItem openRemoteFolderItem = new ToolStripMenuItem()
@@ -258,14 +258,14 @@ namespace CmisSync
                         Name = "openRemote",
                         Image = UIHelpers.GetBitmap("classic_folder_web"),
                     };
-                    openRemoteFolderItem.Click += OpenRemoteFolderDelegate(folderName);
+                    openRemoteFolderItem.Click += OpenRemoteFolderDelegate(localRepo);
 
                     // Sub-item: suspend sync.
                     ToolStripMenuItem suspendFolderItem = new ToolStripMenuItem()
                     {
                         Name = "pause",
                     };
-                    suspendFolderItem.Click += SuspendSyncFolderDelegate(folderName);
+                    suspendFolderItem.Click += SuspendSyncFolderDelegate(localRepo);
 
                     // Sub-item: remove folder from sync
                     ToolStripMenuItem removeFolderFromSyncItem = new ToolStripMenuItem()
@@ -275,7 +275,7 @@ namespace CmisSync
                         Image = UIHelpers.GetBitmap("disconnect"),
                         Tag = "remove",
                     };
-                    removeFolderFromSyncItem.Click += RemoveFolderFromSyncDelegate(folderName);
+                    removeFolderFromSyncItem.Click += RemoveFolderFromSyncDelegate(localRepo);
 
                     // Sub-item: manual sync
                     ToolStripMenuItem manualSyncItem = new ToolStripMenuItem()
@@ -284,7 +284,7 @@ namespace CmisSync
                         Name = "sync",
                         Image = UIHelpers.GetBitmap("media_playback_refresh"),
                     };
-                    manualSyncItem.Click += ManualSyncDelegate(folderName);
+                    manualSyncItem.Click += ManualSyncDelegate(localRepo);
 
                     // Sub-item: settings dialog
                     ToolStripMenuItem settingsItem = new ToolStripMenuItem()
@@ -292,13 +292,13 @@ namespace CmisSync
                         Text = Properties_Resources.Settings,
                         Name = "settings",
                     };
-                    settingsItem.Click += SettingsDelegate(folderName);
+                    settingsItem.Click += SettingsDelegate(localRepo);
 
 
                     setSyncItemState(suspendFolderItem, manualSyncItem, SyncStatus.Idle);
                     foreach (RepoBase aRepo in Program.Controller.Repositories)
                     {
-                        if (aRepo.Name.Equals(folderName))
+                        if (aRepo.RepoInfo.Equals(localRepo))
                         {
                             setSyncItemState(suspendFolderItem, manualSyncItem, aRepo.Status);
                             break;
@@ -344,7 +344,7 @@ namespace CmisSync
                 this.traymenu.Items.Add(addFolderItem);
                 this.traymenu.Items.Add(new ToolStripSeparator());
 
-                if (ConfigManager.CurrentConfig.SingleRepository && ConfigManager.CurrentConfig.Folders.Count > 0)
+                if (ConfigManager.CurrentConfig.SingleRepository && ConfigManager.CurrentConfig.LocalRepositories.Count > 0)
                 {
                     //Configured for single repository and repository count 1 or more so disable menu item.
                     addFolderItem.Enabled = false;
@@ -409,11 +409,11 @@ namespace CmisSync
         /// <summary>
         /// Delegate for opening the local folder.
         /// </summary>
-        private EventHandler OpenLocalFolderDelegate(string reponame)
+        private EventHandler OpenLocalFolderDelegate(Config.SyncConfig.LocalRepository repo)
         {
             return delegate
             {
-                Controller.LocalFolderClicked(reponame);
+                Controller.LocalFolderClicked(repo);
             };
         }
 
@@ -422,8 +422,9 @@ namespace CmisSync
         /// </summary>
         private void NotifyIcon1_MouseClick(Object sender, MouseEventArgs e)
         {
-            if(e.Button == MouseButtons.Left)
-                Controller.LocalFolderClicked("");
+            //FIXME: make this work
+            //if(e.Button == MouseButtons.Left)
+            //    Controller.LocalFolderClicked();
         }
 
         /// <summary>
@@ -442,11 +443,11 @@ namespace CmisSync
         /// <summary>
         /// Delegate for opening the remote folder.
         /// </summary>
-        private EventHandler OpenRemoteFolderDelegate(string reponame)
+        private EventHandler OpenRemoteFolderDelegate(Config.SyncConfig.LocalRepository repo)
         {
             return delegate
             {
-                Controller.RemoteFolderClicked(reponame);
+                Controller.RemoteFolderClicked(repo);
             };
         }
 
@@ -454,15 +455,15 @@ namespace CmisSync
         /// <summary>
         /// Delegate for suspending sync.
         /// </summary>
-        private EventHandler SuspendSyncFolderDelegate(string reponame)
+        private EventHandler SuspendSyncFolderDelegate(Config.SyncConfig.LocalRepository repo)
         {
             return delegate
             {
-                Controller.SuspendSyncClicked(reponame);
+                Controller.SuspendSyncClicked(repo);
             };
         }
 
-        private EventHandler RemoveFolderFromSyncDelegate(string reponame)
+        private EventHandler RemoveFolderFromSyncDelegate(Config.SyncConfig.LocalRepository repo)
         {
             return delegate
             {
@@ -474,24 +475,24 @@ namespace CmisSync
                     MessageBoxResult.No
                     ) == MessageBoxResult.Yes)
                 {
-                    Controller.RemoveFolderFromSyncClicked(reponame);
+                    Controller.RemoveFolderFromSyncClicked(repo);
                 }
             };
         }
 
-        private EventHandler ManualSyncDelegate(string reponame)
+        private EventHandler ManualSyncDelegate(Config.SyncConfig.LocalRepository repo)
         {
             return delegate
             {
-                Controller.ManualSyncClicked(reponame);
+                Controller.ManualSyncClicked(repo);
             };
         }
 
-        private EventHandler SettingsDelegate(string reponame)
+        private EventHandler SettingsDelegate(Config.SyncConfig.LocalRepository repo)
         {
             return delegate
             {
-                Controller.SettingsClicked(reponame);
+                Controller.SettingsClicked(repo);
             };
         }
     }

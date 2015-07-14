@@ -530,10 +530,13 @@ namespace CmisSync
             try
             {
                 // Check whether foldername is already in use
-                int index = Program.Controller.Folders.FindIndex(x => x.Equals(reponame, StringComparison.OrdinalIgnoreCase));
-                if ( index != -1)
-                    throw new ArgumentException(String.Format(Properties_Resources.FolderAlreadyInUse, localpath, Program.Controller.Folders[index]));
-
+                foreach (Config.SyncConfig.LocalRepository repo in Program.Controller.LocalRepositories)
+                {
+                    if (localpath.StartsWith(repo.LocalPath, StringComparison.OrdinalIgnoreCase)) { 
+                        throw new ArgumentException(String.Format(Properties_Resources.FolderAlreadyInUse, localpath, repo));
+                    }
+                }
+                    
                 // Check whether folder name contains invalid characters.
                 Regex regexRepoName = (Path.DirectorySeparatorChar.Equals('\\')) ? RepositoryRegex : RepositoryRegexLinux;
                 if (!regexRepoName.IsMatch(reponame)||CmisSync.Lib.Utils.IsInvalidFolderName(reponame.Replace(Path.DirectorySeparatorChar, ' ')))
@@ -639,16 +642,23 @@ namespace CmisSync
             // Add the remote folder to the configuration and start syncing.
             try
             {
-                Program.Controller.CreateRepository(
-                    repoName,
-                    saved_address,
-                    saved_user.TrimEnd(),
-                    saved_password.TrimEnd(),
-                    PreviousRepository,
-                    PreviousPath,
-                    localrepopath,
-                    ignoredPaths,
-                    saved_syncatstartup);
+                Config.SyncConfig.LocalRepository repo = new Config.SyncConfig.LocalRepository()
+                {
+                    DisplayName = repoName,
+                    RemoteUrl = saved_address,
+                    UserName = saved_user,
+                    Password = new Password(saved_password.TrimEnd()),
+                    RepositoryId = PreviousRepository,
+                    RemotePath = PreviousPath,
+                    LocalPath = localrepopath,
+                    SyncAtStartup = saved_syncatstartup
+                };
+                foreach (string ignoredPath in ignoredPaths) { 
+                    repo.IgnoredFolders.Add(new Config.IgnoredFolder(){
+                        Path = ignoredPath
+                    });
+                }
+                Program.Controller.CreateRepository(repo);
             }
             catch (Exception e)
             {
@@ -675,7 +685,8 @@ namespace CmisSync
         /// </summary>
         public void OpenFolderClicked()
         {
-            Program.Controller.OpenCmisSyncFolder(SyncingReponame);
+            //FIXME: make this work
+            //Program.Controller.OpenCmisSyncFolder(SyncingReponame);
             SyncingReponame = String.Empty;
             FinishPageCompleted();
         }

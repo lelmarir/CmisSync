@@ -1030,7 +1030,7 @@ namespace CmisSync.Lib.Database
             // Migration of databases, which do not have any prefix saved
             if (result == null)
             {
-                var syncFolder = ConfigManager.CurrentConfig.Folders.Find((f) => f.GetRepoInfo().CmisDatabase == this.databaseFileName);
+                var syncFolder = ConfigManager.CurrentConfig.LocalRepositories.Find((f) => f.CmisDatabasePath == this.databaseFileName);
                 string oldprefix = syncFolder.LocalPath;
                 SetPathPrefix(oldprefix);
                 return oldprefix;
@@ -1067,7 +1067,7 @@ namespace CmisSync.Lib.Database
             object result = GetGeneralTableValue(RemotePathPrefixKey);
             if (result == null)
             {
-                var syncFolder = ConfigManager.CurrentConfig.Folders.Find((f) => f.GetRepoInfo().CmisDatabase == this.databaseFileName);
+                var syncFolder = ConfigManager.CurrentConfig.LocalRepositories.Find((f) => f.CmisDatabasePath == this.databaseFileName);
                 string oldprefix = syncFolder.RemotePath;
                 SetRemotePathPrefix(oldprefix);
                 return oldprefix;

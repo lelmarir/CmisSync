@@ -45,10 +45,10 @@ namespace CmisSync.Lib.Database
         /// <param name="dbFile">Database file.</param>
         public static void Migrate(string dbFile)
         {
-            var syncFolder = ConfigManager.CurrentConfig.Folders.Find((f) => f.GetRepoInfo().CmisDatabase == dbFile);
+            var syncFolder = ConfigManager.CurrentConfig.LocalRepositories.Find((f) => f.CmisDatabasePath == dbFile);
 
             int currentDbVersion = Database.SchemaVersion;
-            string dbPath = syncFolder.GetRepoInfo().CmisDatabase;
+            string dbPath = syncFolder.CmisDatabasePath;
 
             try
             {

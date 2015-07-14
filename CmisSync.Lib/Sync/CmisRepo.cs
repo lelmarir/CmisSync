@@ -37,7 +37,7 @@ namespace CmisSync.Lib.Sync
         /// <summary>
         /// Constructor.
         /// </summary>
-        public CmisRepo(RepoInfo repoInfo, IActivityListener activityListener)
+        public CmisRepo(Config.SyncConfig.LocalRepository repoInfo, IActivityListener activityListener)
             : base(repoInfo, activityListener)
         {
             this.synchronizedFolder = new SynchronizedFolder(repoInfo, this, activityListener);
@@ -82,14 +82,6 @@ namespace CmisSync.Lib.Sync
         }
 
         /// <summary>
-        /// Whether this folder's synchronization is suspended right now.
-        /// </summary>
-        public override bool isSuspended()
-        {
-            return this.synchronizedFolder.isSuspended();
-        }
-
-        /// <summary>
         /// Synchronize.
         /// The synchronization is performed in the background, so that the UI stays usable.
         /// </summary>
@@ -103,7 +95,7 @@ namespace CmisSync.Lib.Sync
                 }
                 else
                 {
-                    Logger.Info(String.Format("Repo {0} - Sync skipped. Status={1}", this.Name, this.Status));
+                    Logger.Info(String.Format("Repo {0} - Sync skipped. Status={1}", this.RepoInfo.DisplayName, this.Status));
                 }
             }
         }
@@ -132,7 +124,7 @@ namespace CmisSync.Lib.Sync
                 }
                 else
                 {
-                    Logger.Info(String.Format("Repo {0} - Sync skipped.Status={1}", this.Name, this.Status));
+                    Logger.Info(String.Format("Repo {0} - Sync skipped.Status={1}", this.RepoInfo.DisplayName, this.Status));
                 }
             }
         }
