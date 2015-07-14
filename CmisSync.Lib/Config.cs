@@ -175,9 +175,14 @@ namespace CmisSync.Lib
                 }
 
             }
-            finally
+
+            //try again
+            try
             {
                 Load();
+            }
+            catch (Exception e) {
+                throw;
             }
         }
 
