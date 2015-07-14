@@ -720,5 +720,17 @@ namespace CmisSync
 
             FinishPageCompleted();
         }
+
+        public string getDefautLocalFolderName()
+        {
+            string name;
+            string[] remotePath = saved_remote_path.Split(CmisPath.CMIS_FILE_SEPARATOR);
+            name = remotePath[remotePath.Length-1];
+            if(name.Equals("documentLibrary")) //Alfresco
+            {
+                name = remotePath[remotePath.Length-2];
+            }
+            return name;
+        }
     }
 }

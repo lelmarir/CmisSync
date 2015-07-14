@@ -37,7 +37,6 @@ SOURCES =  \
 	FolderLock.cs \
   ##	Properties/AssemblyInfo.cs \
 	RepoBase.cs \
-	RepoInfo.cs \
 	SyncItem.cs \
 	Sync/ChangeLogThenCrawlStrategy.cs \
 	Sync/CmisRepo.cs \

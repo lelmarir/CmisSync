@@ -98,7 +98,6 @@
     <Compile Include="Sync\WatcherStrategy.cs" />
     <Compile Include="ConfigManager.cs" />
     <Compile Include="RepoBase.cs" />
-    <Compile Include="RepoInfo.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="Backend.cs" />
     <Compile Include="Config.cs" />
