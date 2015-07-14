@@ -792,19 +792,10 @@ namespace CmisSync
                                     TextWrapping = TextWrapping.Wrap,
                                     Width = 420
                                 };
-                                string localfoldername = Controller.saved_address.Host.ToString();
-                                foreach (KeyValuePair<String, String> repository in Controller.repositories)
-                                {
-                                    if (repository.Key == Controller.saved_repository)
-                                    {
-                                        localfoldername += "\\" + repository.Value;
-                                        break;
-                                    }
-                                }
                                 TextBox localfolder_box = new TextBox()
                                 {
                                     Width = 420,
-                                    Text = localfoldername
+                                    Text = Controller.getDefautLocalFolderName()
                                 };
 
                                 TextBlock localrepopath_label = new TextBlock()
