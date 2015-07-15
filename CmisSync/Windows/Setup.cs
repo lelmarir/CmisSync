@@ -49,10 +49,10 @@ namespace CmisSync
         /// </summary>
         public SetupController Controller = new SetupController();
 
-        delegate Tuple<CmisServer, Exception> GetRepositoriesFuzzyDelegate(ServerCredentials credentials);
+        delegate Tuple<CmisServer, Exception> GetRepositoriesFuzzyDelegate(Uri url, UserCredentials credentials);
 
         delegate string[] GetSubfoldersDelegate(string repositoryId, string path,
-            string address, string user, string password);
+            Uri url, UserCredentials credentials);
 
         delegate void CheckRepoPathAndNameDelegate();
 
@@ -583,13 +583,13 @@ namespace CmisSync
                                     // Try to find the CMIS server (asynchronously)
                                     GetRepositoriesFuzzyDelegate dlgt =
                                         new GetRepositoriesFuzzyDelegate(CmisUtils.GetRepositoriesFuzzy);
-                                    ServerCredentials credentials = new ServerCredentials()
+                                    UserCredentials credentials = new UserCredentials()
                                     {
                                         UserName = user_box.Text,
-                                        Password = password_box.Password,
-                                        Address = new Uri(address_box.Text)
+                                        Password = password_box.Password                                        
                                     };
-                                    IAsyncResult ar = dlgt.BeginInvoke(credentials, null, null);
+                                    Uri address = new Uri(address_box.Text);
+                                    IAsyncResult ar = dlgt.BeginInvoke(address, credentials, null, null);
                                     while (!ar.AsyncWaitHandle.WaitOne(100))
                                     {
                                         System.Windows.Forms.Application.DoEvents();
@@ -703,9 +703,14 @@ namespace CmisSync
 
                                         // Get list of subfolders (asynchronously)
                                         GetSubfoldersDelegate dlgt = new GetSubfoldersDelegate(CmisUtils.GetSubfolders);
+                                        UserCredentials credentials = new UserCredentials()
+                                        {
+                                            UserName=Controller.saved_user,
+                                            Password=Controller.saved_password
+                                        };
                                         IAsyncResult ar = dlgt.BeginInvoke(Controller.saved_repository,
-                                            Controller.saved_remote_path, Controller.saved_address.ToString(),
-                                            Controller.saved_user, Controller.saved_password, null, null);
+                                            Controller.saved_remote_path, Controller.saved_address,
+                                           credentials, null, null);
                                         while (!ar.AsyncWaitHandle.WaitOne(100))
                                         {
                                             System.Windows.Forms.Application.DoEvents();
@@ -1207,12 +1212,11 @@ namespace CmisSync
                                         // Try to find the CMIS server (asynchronously)
                                         GetRepositoriesFuzzyDelegate dlgt =
                                             new GetRepositoriesFuzzyDelegate(CmisUtils.GetRepositoriesFuzzy);
-                                        IAsyncResult ar = dlgt.BeginInvoke(
-                                            new ServerCredentials()
+                                        IAsyncResult ar = dlgt.BeginInvoke(Controller.saved_address,
+                                            new UserCredentials()
                                                 {
                                                     UserName = Controller.saved_user,
-                                                    Password = password_box.Password,
-                                                    Address = Controller.saved_address
+                                                    Password = password_box.Password
                                                 },
                                             null, null);
                                         while (!ar.AsyncWaitHandle.WaitOne(100))

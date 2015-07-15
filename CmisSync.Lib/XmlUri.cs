@@ -11,7 +11,7 @@ namespace CmisSync.Lib
     /// </summary>
     public class XmlUri : IXmlSerializable
     {
-        private Uri _Value;
+        private Uri _value;
 
         /// <summary>
         /// Constructor.
@@ -21,14 +21,14 @@ namespace CmisSync.Lib
         /// <summary>
         /// Constructor.
         /// </summary>
-        public XmlUri(Uri source) { _Value = source; }
+        public XmlUri(Uri source) { _value = source; }
 
         /// <summary>
         /// implicit.
         /// </summary>
         public static implicit operator Uri(XmlUri o)
         {
-            return o == null ? null : o._Value;
+            return o == null ? null : o._value;
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace CmisSync.Lib
         /// </summary>
         public void ReadXml(XmlReader reader)
         {
-            _Value = new Uri(reader.ReadElementContentAsString());
+            _value = new Uri(reader.ReadElementContentAsString());
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace CmisSync.Lib
         /// </summary>
         public void WriteXml(XmlWriter writer)
         {
-            writer.WriteValue(_Value.ToString());
+            writer.WriteValue(_value.ToString());
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace CmisSync.Lib
         /// </summary>
         public string ToString()
         {
-            return _Value.ToString();
+            return _value.ToString();
         }
 
         //delegating methods
@@ -83,7 +83,7 @@ namespace CmisSync.Lib
         //   System.InvalidOperationException:
         //     This instance represents a relative URI, and this property is valid only
         //     for absolute URIs.
-        public string AbsolutePath { get { return _Value.AbsolutePath; } }
+        public string AbsolutePath { get { return _value.AbsolutePath; } }
 
         //
         // Summary:
@@ -96,6 +96,26 @@ namespace CmisSync.Lib
         //   System.InvalidOperationException:
         //     This instance represents a relative URI, and this property is valid only
         //     for absolute URIs.
-        public string AbsoluteUri { get { return _Value.AbsoluteUri; } }
+        public string AbsoluteUri { get { return _value.AbsoluteUri; } }
+
+        //
+        // Summary:
+        //     Gets the specified portion of a System.Uri instance.
+        //
+        // Parameters:
+        //   part:
+        //     One of the System.UriPartial values that specifies the end of the URI portion
+        //     to return.
+        //
+        // Returns:
+        //     A System.String that contains the specified portion of the System.Uri instance.
+        //
+        // Exceptions:
+        //   System.InvalidOperationException:
+        //     The current System.Uri instance is not an absolute instance.
+        //
+        //   System.ArgumentException:
+        //     The specified part is not valid.
+        public string GetLeftPart(UriPartial part) { return _value.GetLeftPart(part); }
     }
 }

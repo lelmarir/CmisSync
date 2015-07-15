@@ -39,7 +39,7 @@ namespace CmisSync.Lib.Sync
                 // Interval=5 seconds -> every 6 hours -> about every 2160 iterations
                 // Interval=1 hours -> every 3 days -> about every 72 iterations
                 // Thus a good formula is: nb of iterations = 1 + 263907 / (pollInterval + 117)
-                double pollInterval = repoinfo.PollInterval;
+                int pollInterval = repoinfo.PollInterval;
                 if (changeLogIterationCounter > 263907 / (pollInterval/1000 + 117))
                 {
                     Logger.Debug("It has been a while since the last crawl sync, so launching a crawl sync now.");

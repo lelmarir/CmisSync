@@ -291,30 +291,29 @@ namespace CmisSync
         /// </summary>
         private bool create_startup_item = true;
 
-        /// <summary>
-        /// Load repositories information from a CMIS endpoint.
-        /// </summary>
-        static public Tuple<CmisServer, Exception> GetRepositoriesFuzzy(ServerCredentials credentials)
-        {
-            try
-            {
-                return CmisUtils.GetRepositoriesFuzzy(credentials);
-            }
-            catch (Exception e)
-            {
-                return new Tuple<CmisServer, Exception>(null, e);
-            }
+        ///// <summary>
+        ///// Load repositories information from a CMIS endpoint.
+        ///// </summary>
+        //static public Tuple<CmisServer, Exception> GetRepositoriesFuzzy(ServerCredentials credentials)
+        //{
+        //    try
+        //    {
+        //        return CmisUtils.GetRepositoriesFuzzy(credentials);
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        return new Tuple<CmisServer, Exception>(null, e);
+        //    }
+        //}
 
-        }
-
-        /// <summary>
-        /// Get the list of subfolders contained in a CMIS folder.
-        /// </summary>
-        static public string[] GetSubfolders(string repositoryId, string path,
-            string address, string user, string password)
-        {
-            return CmisUtils.GetSubfolders(repositoryId, path, address, user, password);
-        }
+        ///// <summary>
+        ///// Get the list of subfolders contained in a CMIS folder.
+        ///// </summary>
+        //static public string[] GetSubfolders(string repositoryId, string path,
+        //    string address, string user, string password)
+        //{
+        //    return CmisUtils.GetSubfolders(repositoryId, path, address, user, password);
+        //}
 
         /// <summary>
         /// Regex to check an HTTP/HTTPS URL.
@@ -647,10 +646,14 @@ namespace CmisSync
             {
                 Config.SyncConfig.LocalRepository repo = new Config.SyncConfig.LocalRepository()
                 {
+                    Account = new Config.SyncConfig.Account(){
+                        RemoteUrl = saved_address,
+                        Credentials = new UserCredentials(){
+                        UserName = saved_user,
+                        Password = new Password(saved_password.TrimEnd())
+                        }
+                    },
                     DisplayName = repoName,
-                    RemoteUrl = saved_address,
-                    UserName = saved_user,
-                    Password = new Password(saved_password.TrimEnd()),
                     RepositoryId = PreviousRepository,
                     RemotePath = PreviousPath,
                     LocalPath = localrepopath,

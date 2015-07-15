@@ -409,7 +409,7 @@ namespace CmisSync.Lib.Sync
                                         Logger.Info("- Checksum of local file: " + Database.Database.Checksum(syncItem.LocalPath));
 
                                         // Rename locally modified file.
-                                        String newFilePath = Utils.CreateConflictFilename(syncItem.LocalPath, repoinfo.UserName);
+                                        String newFilePath = Utils.CreateConflictFilename(syncItem.LocalPath, repoinfo);
                                         File.Move(syncItem.LocalPath, newFilePath);
 
                                         // Download server version
@@ -551,7 +551,7 @@ namespace CmisSync.Lib.Sync
                                         Logger.Info("Conflict with file: " + filePath + ", backing up locally modified version.");
                                         activityListener.ActivityStarted();
                                         // Rename locally modified file.
-                                        String newFilePath = Utils.CreateConflictFilename(filePath, repoinfo.UserName);
+                                        String newFilePath = Utils.CreateConflictFilename(filePath, repoinfo);
                                         File.Move(filePath, newFilePath);
 
                                         // Delete file from database.

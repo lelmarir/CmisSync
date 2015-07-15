@@ -40,12 +40,12 @@ namespace CmisSync.Auth
         /// <summary>
         /// Connect to a CMIS server and get a CMIS session that can be used for further CMIS operations.
         /// </summary>
-        public static ISession GetCmisSession(string url, string user, string password, string repositoryId)
+        public static ISession GetCmisSession(Uri url, UserCredentials credentials, string repositoryId)
         {
             Dictionary<string, string> parameters = GetParameters();
-            parameters[SessionParameter.AtomPubUrl] = url;
-            parameters[SessionParameter.User] = user;
-            parameters[SessionParameter.Password] = password;
+            parameters[SessionParameter.AtomPubUrl] = url.ToString();
+            parameters[SessionParameter.User] = credentials.UserName;
+            parameters[SessionParameter.Password] = (string)credentials.Password;
             parameters[SessionParameter.RepositoryId] = repositoryId;
 
             // Create session factory.

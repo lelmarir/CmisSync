@@ -313,8 +313,7 @@ namespace CmisSync.Lib
             //Update password...
             if (!String.IsNullOrEmpty(password))
             {
-                this.RepoInfo.Password = new Password(password.TrimEnd());
-                this.RepoInfo.Password.ObfuscatedPassword = RepoInfo.Password.ObfuscatedPassword;
+                this.RepoInfo.Account.Credentials.Password = new Password(password.TrimEnd());
                 Logger.Debug("Updated \"" + this.RepoInfo.DisplayName + "\" password");
             }
 

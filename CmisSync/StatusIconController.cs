@@ -319,10 +319,10 @@ namespace CmisSync
             Program.UI.Setup.Controller.saved_repository = repo.DisplayName;
             if (repo != null)
             {
-                Program.UI.Setup.Controller.saved_user = repo.UserName;
+                Program.UI.Setup.Controller.saved_user = repo.Account.Credentials.UserName;
                 Program.UI.Setup.Controller.saved_remote_path = repo.RemotePath;
-                Program.UI.Setup.Controller.saved_address = repo.RemoteUrl;
-                Program.UI.Setup.Controller.saved_sync_interval = (int)repo.PollInterval;
+                Program.UI.Setup.Controller.saved_address = repo.Account.RemoteUrl;
+                Program.UI.Setup.Controller.saved_sync_interval = repo.PollInterval;
                 Program.UI.Setup.Controller.saved_syncatstartup = repo.SyncAtStartup;
             }
             Program.Controller.ShowSetupWindow(PageType.Settings);

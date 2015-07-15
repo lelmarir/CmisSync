@@ -16,43 +16,45 @@ namespace CmisSync.Auth
         /// <summary>
         /// User name
         /// </summary>
+        [XmlElement("user")]
         public string UserName { get; set; }
         /// <summary>
         /// Password
         /// </summary>
+        [XmlElement("password")]
         public Password Password { get; set; }
     }
 
-    /// <summary>
-    /// Server Login for a specific Uri
-    /// </summary>
-    [Serializable]
-    public class ServerCredentials : UserCredentials
-    {
-        /// <summary>
-        /// Server Address and Path
-        /// </summary>
-        public Uri Address { get; set; }
+    ///// <summary>
+    ///// Server Login for a specific Uri
+    ///// </summary>
+    //[Serializable]
+    //public class ServerCredentials : UserCredentials
+    //{
+    //    /// <summary>
+    //    /// Server Address and Path
+    //    /// </summary>
+    //    public Uri Address { get; set; }
 
-        /*public ServerCredentials(Uri Address, string UserName, Password Password)
-        {
-            this.Address = Address;
-            this.UserName = UserName;
-            this.Password = Password;
-        }*/
-    }
+    //    /*public ServerCredentials(Uri Address, string UserName, Password Password)
+    //    {
+    //        this.Address = Address;
+    //        this.UserName = UserName;
+    //        this.Password = Password;
+    //    }*/
+    //}
 
-    /// <summary>
-    /// Credentials needed to create a Session for a specific CMIS repository
-    /// </summary>
-    [Serializable]
-    public class CmisRepoCredentials : ServerCredentials
-    {
-        /// <summary>
-        /// Repository ID
-        /// </summary>
-        public string RepoId { get; set; }
-    }
+    ///// <summary>
+    ///// Credentials needed to create a Session for a specific CMIS repository
+    ///// </summary>
+    //[Serializable]
+    //public class CmisRepoCredentials : ServerCredentials
+    //{
+    //    /// <summary>
+    //    /// Repository ID
+    //    /// </summary>
+    //    public string RepoId { get; set; }
+    //}
 
     /// <summary>
     /// Password class stores the given password obfuscated
@@ -83,6 +85,14 @@ namespace CmisSync.Auth
         public static implicit operator Password(string value)
         {
             return new Password(value);
+        }
+
+        /// <summary>
+        /// implicit.
+        /// </summary>
+        public static implicit operator string(Password o)
+        {
+            return o == null ? null : o.ToString();
         }
 
         /// <summary>

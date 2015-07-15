@@ -132,18 +132,18 @@ namespace CmisSync.Lib.Sync
             bool modified = false;
 
             // Loop through all repositories.
-            foreach (CmisSync.Lib.Config.SyncConfig.LocalRepository folder in ConfigManager.CurrentConfig.LocalRepositories)
+            foreach (CmisSync.Lib.Config.SyncConfig.LocalRepository repo in ConfigManager.CurrentConfig.LocalRepositories)
             {
-                string oldUrl = folder.RemoteUrl.ToString();
+                string oldUrl = repo.Account.RemoteUrl.ToString();
 
                 // Replace old pattern from Alfresco 4.0 and 4.1
                 if (oldUrl.EndsWith("/alfresco/cmisatom"))
                 {
-                    string newUrl = oldUrl.Replace("/alfresco/cmisatom", "/alfresco/api/-default-/public/cmis/versions/1.1/atom");
+                    Uri newUrl = new Uri(oldUrl.Replace("/alfresco/cmisatom", "/alfresco/api/-default-/public/cmis/versions/1.1/atom"));
 
-                    if (IsAlfresco42OrLater(folder, newUrl))
+                    if (IsAlfresco42OrLater(repo, newUrl))
                     {
-                        folder.RemoteUrl = new CmisSync.Lib.XmlUri(new Uri(newUrl));
+                        repo.Account.RemoteUrl = newUrl;
                         modified = true;
                     }
                 }
@@ -155,16 +155,15 @@ namespace CmisSync.Lib.Sync
             }
         }
 
-        private static bool IsAlfresco42OrLater(CmisSync.Lib.Config.SyncConfig.LocalRepository folder, string newUrl)
+        private static bool IsAlfresco42OrLater(CmisSync.Lib.Config.SyncConfig.LocalRepository repo, Uri newUrl)
         {
             try
             {
                 CmisUtils.GetSubfolders(
-                    folder.RepositoryId,
-                    folder.RemotePath,
+                    repo.RepositoryId,
+                    repo.RemotePath,
                     newUrl,
-                    folder.UserName,
-                    Crypto.Deobfuscate(folder.Password.ObfuscatedPassword));
+                    repo.Account.Credentials);
 
                 return true;
             }

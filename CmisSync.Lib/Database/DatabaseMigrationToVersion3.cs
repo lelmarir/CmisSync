@@ -112,23 +112,21 @@ namespace CmisSync.Lib.Database
         /// <summary>
         /// Fill the data which is missing due to new columns in the database.
         /// </summary>
-        public static void FillMissingData(Config.SyncConfig.LocalRepository syncFolder, SQLiteConnection connection)
+        public static void FillMissingData(Config.SyncConfig.LocalRepository repo, SQLiteConnection connection)
         {
-            Utils.NotifyUser("CmisSync needs to upgrade its own local data for folder \"" + syncFolder.RepositoryId +
+            Utils.NotifyUser("CmisSync needs to upgrade its own local data for folder \"" + repo.RepositoryId +
                 "\".\nPlease stay on the network during that time, sorry for the inconvenience." +
                 "\nIt can take up to HOURS if you have many files, thank you for your patience." +
                 "\nA notification will pop up when it is done.");
 
-            var session = Auth.Auth.GetCmisSession(
-                              ((Uri)syncFolder.RemoteUrl).ToString(),
-                              syncFolder.UserName,
-                              Crypto.Deobfuscate(syncFolder.Password.ObfuscatedPassword),
-                              syncFolder.RepositoryId);
+            var session = Auth.Auth.GetCmisSession(repo.Account.RemoteUrl,
+                              repo.Account.Credentials,
+                              repo.RepositoryId);
 
             var filters = new HashSet<string>();
             filters.Add("cmis:objectId");
-            string remoteRootFolder = syncFolder.RemotePath;
-            string localRootFolder = syncFolder.LocalPath.Substring(ConfigManager.CurrentConfig.DEFAULT_REPOSITORY_ROOT_FOLDER_PATH.Length + 1);
+            string remoteRootFolder = repo.RemotePath;
+            string localRootFolder = repo.LocalPath.Substring(ConfigManager.CurrentConfig.DEFAULT_REPOSITORY_ROOT_FOLDER_PATH.Length + 1);
 
             try
             {
@@ -215,7 +213,7 @@ namespace CmisSync.Lib.Database
 
                         // Read existing prefix.
 
-                        string newPrefix = syncFolder.LocalPath;
+                        string newPrefix = repo.LocalPath;
 
                         var parameters = new Dictionary<string, object>();
                         parameters.Add("prefix", newPrefix);
@@ -225,12 +223,12 @@ namespace CmisSync.Lib.Database
             }
             catch (Exception e)
             {
-                Logger.Info("Failed to migrate \"" + syncFolder.RepositoryId + "\".", e);
-                Utils.NotifyUser("Failure while migrating folder \"" + syncFolder.RepositoryId + "\".");
+                Logger.Info("Failed to migrate \"" + repo.RepositoryId + "\".", e);
+                Utils.NotifyUser("Failure while migrating folder \"" + repo.RepositoryId + "\".");
                 throw;
             }
 
-            Utils.NotifyUser("CmisSync has finished upgrading its own local data for folder \"" + syncFolder.RepositoryId + "\".");
+            Utils.NotifyUser("CmisSync has finished upgrading its own local data for folder \"" + repo.RepositoryId + "\".");
         }
     }
 }
