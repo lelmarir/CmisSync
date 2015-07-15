@@ -50,7 +50,7 @@ namespace CmisSync.Lib.Cmis
         /// Users can provide the URL of the web interface, and we have to return the CMIS URL
         /// Returns the list of repositories as well.
         /// </summary>
-        static public Tuple<CmisServer, Exception> GetRepositoriesFuzzy(Uri url, UserCredentials credentials)
+        static public CmisServer GetRepositoriesFuzzy(Uri url, UserCredentials credentials)
         {
             Dictionary<string, string> repositories = null;
             Exception firstException = null;
@@ -63,7 +63,9 @@ namespace CmisSync.Lib.Cmis
             catch (CmisRuntimeException e)
             {
                 if (e.Message == "ConnectFailure")
-                    return new Tuple<CmisServer, Exception>(new CmisServer(url, null), new ServerNotFoundException(e.Message, e));
+                {
+                    throw new ServerNotFoundException(e);
+                }
                 firstException = e;
             }
             catch (Exception e)
@@ -74,7 +76,7 @@ namespace CmisSync.Lib.Cmis
             if (repositories != null)
             {
                 // Found!
-                return new Tuple<CmisServer, Exception>(new CmisServer(url, repositories), null);
+                return new CmisServer(url, repositories);
             }
 
             // Extract protocol and server name or IP address
@@ -128,12 +130,14 @@ namespace CmisSync.Lib.Cmis
                 if (repositories != null)
                 {
                     // Found!
-                    return new Tuple<CmisServer, Exception>( new CmisServer(new Uri(fuzzyUrl), repositories), null);
+                    return new CmisServer(new Uri(fuzzyUrl), repositories);
                 }
             }
 
             // Not found. Return also the first exception to inform the user correctly
-            return new Tuple<CmisServer, Exception>(new CmisServer(bestUrl == null ? url : new Uri(bestUrl), null), firstException);
+            throw new ServerNotFoundException(firstException){
+                BestTryedUrl = new Uri(bestUrl)
+            };
         }
 
 

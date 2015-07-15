@@ -425,6 +425,11 @@ namespace CmisSync.Lib
 
             public class Account
             {
+
+                public Account() {
+                    this.LocalRepositories = new LocalRepositoriesList(this);
+                }
+
                 /// <summary>
                 /// Name.
                 /// </summary>
@@ -442,7 +447,7 @@ namespace CmisSync.Lib
 
                 [XmlArray("localRepositories")]
                 [XmlArrayItem("localRepository")]
-                public LocalRepositoriesList LocalRepositories { get; set; }
+                public LocalRepositoriesList LocalRepositories { get; internal set; }
             }
 
             public class LocalRepositoriesList : List<LocalRepository>

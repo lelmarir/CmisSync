@@ -44,12 +44,14 @@ namespace CmisSync
     {
         private static readonly ILog Logger = LogManager.GetLogger(typeof(Setup));
 
+        private static readonly string PASSWORD_UNCHANGED_TEXT = "********";
+
         /// <summary>
         /// MVC controller.
         /// </summary>
         public SetupController Controller = new SetupController();
 
-        delegate Tuple<CmisServer, Exception> GetRepositoriesFuzzyDelegate(Uri url, UserCredentials credentials);
+        delegate CmisServer GetRepositoriesFuzzyDelegate(Uri url, UserCredentials credentials);
 
         delegate string[] GetSubfoldersDelegate(string repositoryId, string path,
             Uri url, UserCredentials credentials);
@@ -113,7 +115,7 @@ namespace CmisSync
                             {
                                 // GUI elements.
 
-                                Header = Properties_Resources.Welcome;
+                                HeaderTitle = Properties_Resources.Welcome;
                                 Description = Properties_Resources.Intro;
 
                                 Button cancel_button = new Button()
@@ -172,7 +174,7 @@ namespace CmisSync
                                         {
                                             // GUI elements.
 
-                                            Header = Properties_Resources.WhatsNext;
+                                            HeaderTitle = Properties_Resources.WhatsNext;
                                             Description = Properties_Resources.CmisSyncCreates;
 
                                             WPF.Image slide_image = new WPF.Image()
@@ -221,7 +223,7 @@ namespace CmisSync
                                         {
                                             // GUI elements.
 
-                                            Header = Properties_Resources.Synchronization;
+                                            HeaderTitle = Properties_Resources.Synchronization;
                                             Description = Properties_Resources.DocumentsAre;
 
 
@@ -260,7 +262,7 @@ namespace CmisSync
                                         {
                                             // GUI elements.
 
-                                            Header = Properties_Resources.StatusIcon;
+                                            HeaderTitle = Properties_Resources.StatusIcon;
                                             Description = Properties_Resources.StatusIconShows;
 
 
@@ -299,7 +301,7 @@ namespace CmisSync
                                         {
                                             // GUI elements.
 
-                                            Header = Properties_Resources.AddFolders;
+                                            HeaderTitle = Properties_Resources.AddFolders;
                                             Description = Properties_Resources.YouCan;
 
 
@@ -358,7 +360,7 @@ namespace CmisSync
                             {
                                 // GUI elements.
 
-                                Header = Properties_Resources.Where;
+                                HeaderTitle = Properties_Resources.Where;
 
                                 // Address input GUI.
                                 TextBlock address_label = new TextBlock()
@@ -577,68 +579,80 @@ namespace CmisSync
 
                                 continue_button.Click += delegate
                                 {
-                                    // Show wait cursor
-                                    System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
-
-                                    // Try to find the CMIS server (asynchronously)
-                                    GetRepositoriesFuzzyDelegate dlgt =
-                                        new GetRepositoriesFuzzyDelegate(CmisUtils.GetRepositoriesFuzzy);
+                                    Uri address = new Uri(address_box.Text);
                                     UserCredentials credentials = new UserCredentials()
                                     {
                                         UserName = user_box.Text,
-                                        Password = password_box.Password                                        
+                                        Password = password_box.Password
                                     };
-                                    Uri address = new Uri(address_box.Text);
-                                    IAsyncResult ar = dlgt.BeginInvoke(address, credentials, null, null);
-                                    while (!ar.AsyncWaitHandle.WaitOne(100))
-                                    {
-                                        System.Windows.Forms.Application.DoEvents();
-                                    }
-                                    Tuple<CmisServer, Exception> result = dlgt.EndInvoke(ar);
-                                    CmisServer cmisServer = result.Item1;
 
-                                    Controller.repositories = cmisServer != null ? cmisServer.Repositories : null;
+                                    System.ComponentModel.BackgroundWorker worker = new System.ComponentModel.BackgroundWorker(){
+                                        WorkerReportsProgress=false,
+                                        WorkerSupportsCancellation=false
+                                    };
+                                    worker.DoWork += delegate {                                        
+                                        Dispatcher.Invoke((Action) delegate {
+                                            // Show wait cursor
+                                            System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
+                                            address_error_label.Visibility = Visibility.Hidden;
+                                        });
 
-                                    address_box.Text = cmisServer.Url.ToString();
+                                        CmisServer server = null;
+                                        try
+                                        {
+                                            server = CmisUtils.GetRepositoriesFuzzy(address, credentials);
+                                            Controller.RemoteRpositories = server.Repositories;
+                                            if (Controller.RemoteRpositories == null || Controller.RemoteRpositories.Count == 0) 
+                                            { 
+                                                throw new System.InvalidOperationException("Unable to retrieve repositories form server.");
+                                            }
 
-                                    // Hide wait cursor
-                                    System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.Default;
+                                            Dispatcher.Invoke((Action) delegate {
+                                               address_box.Text = server.Url.ToString();
 
-                                    if (Controller.repositories == null)
-                                    {
-                                        // Could not retrieve repositories list from server, show warning.
-                                        string warning = "";
-                                        string message = result.Item2.Message;
-                                        Exception e = result.Item2;
-                                        if (e is PermissionDeniedException)
-                                        {
-                                            warning = Properties_Resources.LoginFailedForbidden;
+                                                // Continue to next step, which is choosing a particular folder.
+                                                Controller.Add1PageCompleted(
+                                                    new Uri(address_box.Text), user_box.Text, password_box.Password);
+                                            });                                            
                                         }
-                                        else if (e is ServerNotFoundException)
+                                        catch(Exception e)
                                         {
-                                            warning = Properties_Resources.ConnectFailure;
+                                            // Could not retrieve repositories list from server, show warning.
+                                            string warning = "";
+                                            string message = e.Message;
+                                            if (e is PermissionDeniedException)
+                                            {
+                                                warning = Properties_Resources.LoginFailedForbidden;
+                                            }
+                                            else if (e is ServerNotFoundException)
+                                            {
+                                                warning = Properties_Resources.ConnectFailure;
+                                            }
+                                            else if (e.Message == "SendFailure" && server != null && server.Url.Scheme.StartsWith("https"))
+                                            {
+                                                warning = Properties_Resources.SendFailureHttps;
+                                            }
+                                            else if (e.Message == "TrustFailure")
+                                            {
+                                                warning = Properties_Resources.TrustFailure;
+                                            }
+                                            else
+                                            {
+                                                warning = message + Environment.NewLine + Properties_Resources.Sorry;
+                                            }
+
+                                            Dispatcher.Invoke((Action) delegate {
+                                                address_error_label.Text = warning;
+                                                address_error_label.Visibility = Visibility.Visible;
+                                            });                                            
+                                        }finally{
+                                            Dispatcher.Invoke((Action) delegate {
+                                                // Hide wait cursor
+                                                System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.Default;
+                                            });
                                         }
-                                        else if (e.Message == "SendFailure" && cmisServer.Url.Scheme.StartsWith("https"))
-                                        {
-                                            warning = Properties_Resources.SendFailureHttps;
-                                        }
-                                        else if (e.Message == "TrustFailure")
-                                        {
-                                            warning = Properties_Resources.TrustFailure;
-                                        }
-                                        else
-                                        {
-                                            warning = message + Environment.NewLine + Properties_Resources.Sorry;
-                                        }
-                                        address_error_label.Text = warning;
-                                        address_error_label.Visibility = Visibility.Visible;
-                                    }
-                                    else
-                                    {
-                                        // Continue to next step, which is choosing a particular folder.
-                                        Controller.Add1PageCompleted(
-                                            new Uri(address_box.Text), user_box.Text, password_box.Password);
-                                    }
+                                    };
+                                    worker.RunWorkerAsync();
                                 };
                                 break;
                             }
@@ -650,7 +664,7 @@ namespace CmisSync
                             {
                                 // GUI elements.
 
-                                Header = Properties_Resources.Which;
+                                HeaderTitle = Properties_Resources.Which;
 
                                 // A tree allowing the user to browse CMIS repositories/folders.
                                 /*if(TODO check if OpenDataSpace, and further separate code below)
@@ -664,7 +678,7 @@ namespace CmisSync
                                 treeView.Height = 267;
 
                                 // Some CMIS servers hold several repositories (ex:Nuxeo). Show one root per repository.
-                                foreach (KeyValuePair<String, String> repository in Controller.repositories)
+                                foreach (KeyValuePair<String, String> repository in Controller.RemoteRpositories)
                                 {
                                     System.Windows.Controls.TreeViewItem item = new System.Windows.Controls.TreeViewItem();
                                     item.Tag = new SelectionTreeItem(repository.Key, "/");
@@ -733,7 +747,7 @@ namespace CmisSync
                                 };
 
                                 //expand the repository if there is only one
-                                if (Controller.repositories.Count == 1)
+                                if (Controller.RemoteRpositories.Count == 1)
                                 {
                                     ((TreeViewItem)treeView.Items[0]).IsSelected = true;
                                 }
@@ -787,7 +801,7 @@ namespace CmisSync
 
                                 // GUI elements.
 
-                                Header = Properties_Resources.Customize;
+                                HeaderTitle = Properties_Resources.Customize;
 
                                 // Customize local folder name
                                 TextBlock localfolder_label = new TextBlock()
@@ -977,7 +991,7 @@ namespace CmisSync
                             {
                                 // GUI elements.
 
-                                Header = Properties_Resources.Ready;
+                                HeaderTitle = Properties_Resources.Ready;
                                 Description = Properties_Resources.YouCanFind;
 
                                 Button finish_button = new Button()
@@ -1021,7 +1035,7 @@ namespace CmisSync
                             {
                                 // GUI elements.
 
-                                Header = Properties_Resources.Settings;
+                                HeaderTitle = Properties_Resources.Settings;
 
                                 // Address input GUI.
                                 TextBlock address_label = new TextBlock()
@@ -1029,7 +1043,6 @@ namespace CmisSync
                                     Text = Properties_Resources.WebAddress,
                                     FontWeight = FontWeights.Bold
                                 };
-
                                 TextBox address_box = new TextBox()
                                 {
                                     Width = 420,
@@ -1062,7 +1075,8 @@ namespace CmisSync
 
                                 PasswordBox password_box = new PasswordBox()
                                 {
-                                    Width = 200
+                                    Width = 200,
+                                    Password=PASSWORD_UNCHANGED_TEXT
                                 };
 
                                 // Rather than a TextBlock, we use a textBox so that users can copy/paste the error message and Google it.
@@ -1204,70 +1218,85 @@ namespace CmisSync
 
                                 save_button.Click += delegate
                                 {
-                                    if (!String.IsNullOrEmpty(password_box.Password))
+                                    if (password_box.Password != PASSWORD_UNCHANGED_TEXT)
                                     {
-                                        // Show wait cursor
-                                        System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
+                                        Uri address = new Uri(address_box.Text);
+                                        UserCredentials credentials = new UserCredentials()
+                                        {
+                                            UserName = user_box.Text,
+                                            Password = password_box.Password
+                                        };
 
-                                        // Try to find the CMIS server (asynchronously)
-                                        GetRepositoriesFuzzyDelegate dlgt =
-                                            new GetRepositoriesFuzzyDelegate(CmisUtils.GetRepositoriesFuzzy);
-                                        IAsyncResult ar = dlgt.BeginInvoke(Controller.saved_address,
-                                            new UserCredentials()
+                                        System.ComponentModel.BackgroundWorker worker = new System.ComponentModel.BackgroundWorker(){
+                                            WorkerReportsProgress=false,
+                                            WorkerSupportsCancellation=false
+                                        };
+                                        worker.DoWork += delegate {                                        
+                                            Dispatcher.Invoke((Action) delegate {
+                                                // Show wait cursor
+                                                System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.WaitCursor;
+                                                authentication_error_label.Visibility = Visibility.Hidden;
+                                            }); 
+
+                                            CmisServer server = null;
+                                            try
+                                            {
+                                                server = CmisUtils.GetRepositoriesFuzzy(address, credentials);
+                                                Controller.RemoteRpositories = server.Repositories;
+                                                if (Controller.RemoteRpositories == null || Controller.RemoteRpositories.Count == 0) 
+                                                { 
+                                                    throw new System.InvalidOperationException("Unable to retrieve repositories form server.");
+                                                }
+
+                                                Dispatcher.Invoke((Action) delegate {
+                                                   address_box.Text = server.Url.ToString();
+
+                                                    // Continue to next step, which is choosing a particular folder.
+                                                    Controller.SettingsPageCompleted(password_box.Password, 
+                                                        slider.PollInterval, 
+                                                        (bool)startup_checkbox.IsChecked);                                        
+                                                });                                            
+                                            }
+                                            catch(Exception e)
+                                            {
+                                                // Could not retrieve repositories list from server, show warning.
+                                                string warning = "";
+                                                string message = e.Message;
+                                                if (e is PermissionDeniedException)
                                                 {
-                                                    UserName = Controller.saved_user,
-                                                    Password = password_box.Password
-                                                },
-                                            null, null);
-                                        while (!ar.AsyncWaitHandle.WaitOne(100))
-                                        {
-                                            System.Windows.Forms.Application.DoEvents();
-                                        }
-                                        Tuple<CmisServer, Exception> result = dlgt.EndInvoke(ar);
-                                        CmisServer cmisServer = result.Item1;
+                                                    warning = Properties_Resources.LoginFailedForbidden;
+                                                }
+                                                else if (e is ServerNotFoundException)
+                                                {
+                                                    warning = Properties_Resources.ConnectFailure;
+                                                }
+                                                else if (e.Message == "SendFailure" && server != null && server.Url.Scheme.StartsWith("https"))
+                                                {
+                                                    warning = Properties_Resources.SendFailureHttps;
+                                                }
+                                                else if (e.Message == "TrustFailure")
+                                                {
+                                                    warning = Properties_Resources.TrustFailure;
+                                                }
+                                                else
+                                                {
+                                                    warning = message + Environment.NewLine + Properties_Resources.Sorry;
+                                                }
 
-                                        Controller.repositories = cmisServer != null ? cmisServer.Repositories : null;
-
-                                        // Hide wait cursor
-                                        System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.Default;
-
-                                        if (Controller.repositories == null)
-                                        {
-                                            // Could not retrieve repositories list from server, show warning.
-                                            string warning = "";
-                                            string message = result.Item2.Message;
-                                            Exception e = result.Item2;
-                                            if (e is PermissionDeniedException)
-                                            {
-                                                warning = Properties_Resources.LoginFailedForbidden;
+                                                Dispatcher.Invoke((Action) delegate {
+                                                    authentication_error_label.Text = warning;
+                                                    authentication_error_label.Visibility = Visibility.Visible;
+                                                });                                            
+                                            }finally{
+                                                Dispatcher.Invoke((Action) delegate {
+                                                    // Hide wait cursor
+                                                    System.Windows.Forms.Cursor.Current = System.Windows.Forms.Cursors.Default;
+                                                });
                                             }
-                                            else if (e is ServerNotFoundException)
-                                            {
-                                                warning = Properties_Resources.ConnectFailure;
-                                            }
-                                            else if (e.Message == "SendFailure" && cmisServer.Url.Scheme.StartsWith("https"))
-                                            {
-                                                warning = Properties_Resources.SendFailureHttps;
-                                            }
-                                            else if (e.Message == "TrustFailure")
-                                            {
-                                                warning = Properties_Resources.TrustFailure;
-                                            }
-                                            else
-                                            {
-                                                warning = message + Environment.NewLine + Properties_Resources.Sorry;
-                                            }
-                                            authentication_error_label.Text = warning;
-                                            authentication_error_label.Visibility = Visibility.Visible;
-                                        }
-                                        else
-                                        {
-                                            // Continue to next step, which is choosing a particular folder.
-                                            Controller.SettingsPageCompleted(password_box.Password, slider.PollInterval, (bool)startup_checkbox.IsChecked);
-                                        }
-
+                                        };
+                                        worker.RunWorkerAsync();
                                     }
-                                    else
+                                    else //if(isPasswordChanged == false)
                                     {
                                         Controller.SettingsPageCompleted(null, slider.PollInterval, (bool)startup_checkbox.IsChecked);
                                     }

@@ -9,6 +9,8 @@ namespace CmisSync.Lib.Cmis
     [Serializable]
     public class ServerNotFoundException : BaseException
     {
+        public Uri BestTryedUrl { get; set; }
+
         /// <summary>
         /// Constructor.
         /// </summary>

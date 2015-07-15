@@ -284,7 +284,7 @@ namespace CmisSync
         /// <summary>
         /// List of the CMIS repositories at the chosen URL.
         /// </summary>
-        public Dictionary<string, string> repositories;
+        public Dictionary<string, string> RemoteRpositories;
 
         /// <summary>
         /// Whether CmisSync should be started automatically at login.

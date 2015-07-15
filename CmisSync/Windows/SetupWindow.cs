@@ -42,7 +42,7 @@ namespace CmisSync {
         /// <summary>
         /// Header showing what the wizard step is about.
         /// </summary>
-        public string Header;
+        public string HeaderTitle;
 
         /// <summary>
         /// Header explaining what the wizard step is about, with a bit more details than the header.
@@ -146,7 +146,7 @@ namespace CmisSync {
 
             // Reset buttons and labels.
             Buttons       = new List <Button> ();
-            Header        = "";
+            HeaderTitle        = "";
             Description   = "";
         }
 
@@ -158,7 +158,7 @@ namespace CmisSync {
         {
             // Create header and description.
             Label header_label = new Label () {
-                Content    = Header,
+                Content    = HeaderTitle,
                 Foreground = new SolidColorBrush (Color.FromRgb (0, 51, 153)),
                 FontSize   = 16
             };
