@@ -60,6 +60,10 @@ namespace CmisSync.Lib.Sync
             ///     else:
             ///       upload recursively               // if BIDIRECTIONAL
             /// </summary>
+            /// <returns>
+            /// True if all content has been successfully synchronized.
+            /// False if anything has failed or been skipped.
+            /// </returns>
             private bool CrawlSync(IFolder remoteFolder, string localFolder)
             {
                 SleepWhileSuspended();
@@ -86,11 +90,9 @@ namespace CmisSync.Lib.Sync
                 IList<string> remoteFiles = new List<string>();
                 IList<string> remoteSubfolders = new List<string>();
 
-                try
-                {
                     // Crawl remote children.
                     // Logger.LogInfo("Sync", String.Format("Crawl remote folder {0}", this.remoteFolderPath));
-                    CrawlRemote(remoteFolder, localFolder, remoteFiles, remoteSubfolders);
+                bool success = CrawlRemote(remoteFolder, localFolder, remoteFiles, remoteSubfolders);
 
                     // Crawl local files.
                     // Logger.LogInfo("Sync", String.Format("Crawl local files in the local folder {0}", localFolder));
@@ -100,14 +102,8 @@ namespace CmisSync.Lib.Sync
                     // Logger.LogInfo("Sync", String.Format("Crawl local folder {0}", localFolder));
                     CrawlLocalFolders(localFolder, remoteFolder, remoteSubfolders);
 
-                    return true;
+                return success;
                 }
-                catch (CmisBaseException e)
-                {
-                    ProcessRecoverableException("Could not crawl folder: " + remoteFolder.Path, e);
-                    return false;
-                }
-            }
 
 
             private void CrawlSyncAndUpdateChangeLogToken(IFolder remoteFolder, string localFolder)
@@ -131,73 +127,12 @@ namespace CmisSync.Lib.Sync
 
 
             /// <summary>
-            /// Takes the loaded and given descendants as children of the given remoteFolder and checks agains the localFolder
-            /// </summary>
-            /// <param name="remoteFolder">Folder which contains to given children</param>
-            /// <param name="children">All children of the given remote folder</param>
-            /// <param name="localFolder">The local folder, with which the remoteFolder should be synchronized</param>
-            /// <returns></returns>
-            private void CrawlDescendants(IFolder remoteFolder, IList<ITree<IFileableCmisObject>> children, string localFolder)
-            {
-                // Lists of files/folders, to delete those that have been removed on the server.
-                IList<string> remoteFiles = new List<string>();
-                IList<string> remoteSubfolders = new List<string>();
-                if (children != null)
-                    foreach (ITree<IFileableCmisObject> node in children)
-                    {
-                        #region Cmis Folder
-                        if (node.Item is Folder)
-                        {
-                            // It is a CMIS folder.
-                            IFolder remoteSubFolder = (IFolder)node.Item;
-                            remoteSubfolders.Add(remoteSubFolder.Name);
-                            if (!Utils.IsInvalidFolderName(remoteSubFolder.Name) && !repoinfo.isPathIgnored(remoteSubFolder.Path))
-                            {
-                                var syncItem = database.GetFolderSyncItemFromRemotePath(remoteSubFolder.Path);
-                                if (null == syncItem)
-                                {
-                                    syncItem = SyncItemFactory.CreateFromRemotePath(remoteSubFolder.Path, repoinfo);
-                                }
-
-                                //Check whether local folder exists.
-                                if (Directory.Exists(syncItem.LocalPath))
-                                {
-                                    CrawlDescendants(remoteSubFolder, node.Children, syncItem.LocalPath);
-                                }
-                                else
-                                {
-                                    DownloadFolder(remoteSubFolder, localFolder);
-                                    if (Directory.Exists(syncItem.LocalPath))
-                                    {
-                                        RecursiveFolderCopy(remoteSubFolder, syncItem.LocalPath);
-                                    }
-                                }
-                            }
-                        }
-                        #endregion
-
-                        #region Cmis Document
-                        else if (node.Item is Document)
-                        {
-                            // It is a CMIS document.
-                            string remoteFolderPath = remoteFolder.Path;
-                            string remoteDocumentName = ((IDocument)node.Item).Name;
-                            IDocument remoteDocument = (IDocument)node.Item;
-                            SyncDownloadFile(remoteDocument, localFolder, remoteFiles);
-                        }
-                        #endregion
-                    }
-                CrawlLocalFiles(localFolder, remoteFolder, remoteFiles);
-                CrawlLocalFolders(localFolder, remoteFolder, remoteSubfolders);
-            }
-
-
-            /// <summary>
             /// Crawl remote content, syncing down if needed.
             /// Meanwhile, cache remoteFiles and remoteFolders, they are output parameters that are used in CrawlLocalFiles/CrawlLocalFolders
             /// </summary>
-            private void CrawlRemote(IFolder remoteFolder, string localFolder, IList<string> remoteFiles, IList<string> remoteFolders)
+            private bool CrawlRemote(IFolder remoteFolder, string localFolder, IList<string> remoteFiles, IList<string> remoteFolders)
             {
+                bool success = true;
                 SleepWhileSuspended();
 
                 // Get all remote children.
@@ -206,6 +141,8 @@ namespace CmisSync.Lib.Sync
                 operationContext.MaxItemsPerPage = Int32.MaxValue;
                 foreach (ICmisObject cmisObject in remoteFolder.GetChildren(operationContext))
                 {
+                    try
+                    {
                     if (cmisObject is DotCMIS.Client.Impl.Folder)
                     {
                         // It is a CMIS folder.
@@ -229,6 +166,13 @@ namespace CmisSync.Lib.Sync
                             + ") for object " + remoteFolder + "/" + cmisObject.Name);
                     }
                 }
+                    catch (CmisBaseException e)
+                    {
+                        ProcessRecoverableException("Could not access remote object: " + cmisObject.Name, e);
+                        success = false;
+                    }
+            }
+                return success;
             }
 
             private bool isLink(ICmisObject cmisObject)
@@ -353,13 +297,11 @@ namespace CmisSync.Lib.Sync
             {
                 SleepWhileSuspended();
 
-                try
-                {
                     if (Utils.WorthSyncing(localFolder, remoteDocument.Name, repoinfo))
                     {
                         // We use the filename of the document's content stream.
                         // This can be different from the name of the document.
-                        // For instance in FileNet it is not usual to have a document where
+                    // For instance in FileNet it is not unusual to have a document where
                         // document.Name is "foo" and document.ContentStreamFileName is "foo.jpg".
                         string remoteDocumentFileName = remoteDocument.ContentStreamFileName;
                         //Logger.Debug("CrawlRemote doc: " + localFolder + CmisPath.CMIS_FILE_SEPARATOR + remoteDocumentFileName);
@@ -374,6 +316,8 @@ namespace CmisSync.Lib.Sync
 
                         remoteFiles.Add(remoteDocumentFileName);
 
+                    var paths = remoteDocument.Paths;
+                    var pathsCount = paths.Count;
                         var syncItem = database.GetSyncItemFromRemotePath(remoteDocument.Paths[0]);
                         if (null == syncItem)
                         {
@@ -472,11 +416,6 @@ namespace CmisSync.Lib.Sync
                         }
                     }
                 }
-                catch (Exception e)
-                {
-                    ProcessRecoverableException("Could not crawl sync remote document: " + remoteDocument.Name, e);
-                }
-            }
 
 
             /// <summary>

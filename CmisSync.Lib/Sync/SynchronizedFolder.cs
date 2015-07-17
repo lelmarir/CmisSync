@@ -434,7 +434,7 @@ namespace CmisSync.Lib.Sync
                     {
                         //fix #559 Content remotely deleted if synced folder removed while CmisSync is running
                         if (!Directory.Exists(localFolder)) { 
-                            //the user has deleted/moved/rebnamed the local root folder.
+                            //the user has deleted/moved/renamed the local root folder.
                             throw new CmisMissingSyncFolderException("Missing " + localFolder + ".");
                         }
 
@@ -559,7 +559,8 @@ namespace CmisSync.Lib.Sync
                 else if (exception is CmisPermissionDeniedException)
                 {
                     // The caller of the service method does not have sufficient permissions to perform the operation (any method)
-                    recoverable = false;
+                    // True because it might be only for a single document and not for the others.
+                    recoverable = true;
                 }
                 else if (exception is CmisRuntimeException)
                 {
@@ -634,9 +635,9 @@ namespace CmisSync.Lib.Sync
 
                 Logger.Error(logMessage, exception);
 
-                //FIXME: should we remove the file after an error?
                 if (!recoverable)
                 {
+                    // TODO Any temporary file to clean maybe?
                     throw exception;
                 }
             }
@@ -1022,6 +1023,25 @@ namespace CmisSync.Lib.Sync
 
             /// <summary>
             /// Download a single file from the CMIS server.
+            /// 
+            /// Algorithm:
+            /// 
+            /// Skip if invalid filename
+            /// If directory exists with same name, delete it
+            /// If temporary file already exists but database has a different modification date than server, delete it
+            /// Download data and metadata, return if that fails
+            /// If a file with this name already exists locally
+            ///   If conflict
+            ///     Rename the existing file and put the server fils instead
+            ///     Notify the user
+            ///   If file update
+            ///     Replace the file
+            /// Else (new file)
+            ///   Save
+            /// Set creation date and last modification date if available
+            /// Make read-only if remote can not be modified
+            /// Create CmisSync database entry for this file
+            /// 
             /// </summary>
             private bool DownloadFile(IDocument remoteDocument, string localFolder)
             {
@@ -1117,8 +1137,11 @@ namespace CmisSync.Lib.Sync
                         File.Delete(tmpfilepath);
                     }
 
-                    if (success)
+                    if ( ! success)
                     {
+                        return false;
+                    }
+
                         Logger.Info(String.Format("Downloaded remote object({0}): {1}", remoteDocument.Id, syncItem.RemoteFileName));
 
                         // TODO Control file integrity by using hash compare?
@@ -1138,7 +1161,7 @@ namespace CmisSync.Lib.Sync
                         }
 
 
-                        // Conflict handling
+                    // Update or conflict
                         if (File.Exists(filepath))
                         {
                             if (database.LocalFileHasChanged(filepath)) // Conflict. Server-side file and Local file both modified.
@@ -1183,8 +1206,6 @@ namespace CmisSync.Lib.Sync
                             SetLastModifiedDate(remoteDocument, filepath, metadata);
                         }
 
-                        //here the file is surely not-read-ony
-
                         if (null != remoteDocument.CreationDate)
                         {
                             File.SetCreationTime(filepath, (DateTime)remoteDocument.CreationDate);
@@ -1196,19 +1217,16 @@ namespace CmisSync.Lib.Sync
 
                         // Should the local file be made read-only?
                         // Check ther permissions of the current user to the remote document.
-                        // (eventually set read only after we finish to manipulate the file or we can get an error if it's read only)
-                        bool canSetContent = remoteDocument.AllowableActions.Actions.Contains(PermissionMappingKeys.CanSetContentDocument);
-                        //FIXME: alfresco reporst "canSetContentStream" instead of "canSetContent.Document"
-                        canSetContent = canSetContent || remoteDocument.AllowableActions.Actions.Contains("canSetContentStream");
-                        if (!canSetContent)
+                    bool readOnly = ! remoteDocument.AllowableActions.Actions.Contains(Actions.CanSetContentStream);
+                    if (readOnly)
                         {
-                            File.SetAttributes(tmpfilepath, FileAttributes.ReadOnly);
+                        File.SetAttributes(filepath, FileAttributes.ReadOnly);
                         }
 
                         // Create database entry for this file.
                         database.AddFile(syncItem, remoteDocument.Id, remoteDocument.LastModificationDate, metadata, filehash);
                         Logger.Info("Added file to database: " + filepath);
-                    }
+
                     return success;
                 }
                 catch (Exception e)
