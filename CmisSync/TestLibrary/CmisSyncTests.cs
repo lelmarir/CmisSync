@@ -13,6 +13,7 @@ using DotCMIS.Data.Impl;
 using Moq;
 using Newtonsoft.Json;
 using NUnit.Framework;
+using CmisSync.Lib;
 
 /**
  * Unit Tests for CmisSync.
@@ -225,14 +226,14 @@ namespace TestLibrary
             }
         }
 
-        private ISession CreateSession(RepoInfo repoInfo)
+        private ISession CreateSession(Config.SyncConfig.LocalRepository repoInfo)
         {
             Dictionary<string, string> cmisParameters = new Dictionary<string, string>();
             cmisParameters[SessionParameter.BindingType] = BindingType.AtomPub;
-            cmisParameters[SessionParameter.AtomPubUrl] = repoInfo.Address.ToString();
-            cmisParameters[SessionParameter.User] = repoInfo.User;
-            cmisParameters[SessionParameter.Password] = repoInfo.Password.ToString();
-            cmisParameters[SessionParameter.RepositoryId] = repoInfo.RepoID;
+            cmisParameters[SessionParameter.AtomPubUrl] = repoInfo.Account.RemoteUrl.ToString();
+            cmisParameters[SessionParameter.User] = repoInfo.Account.Credentials.UserName;
+            cmisParameters[SessionParameter.Password] = repoInfo.Account.Credentials.Password.ToString();
+            cmisParameters[SessionParameter.RepositoryId] = repoInfo.RepositoryId;
             cmisParameters[SessionParameter.ConnectTimeout] = "-1";
 
             return SessionFactory.NewInstance().CreateSession(cmisParameters);
@@ -386,13 +387,12 @@ namespace TestLibrary
         public void GetRepositories(string canonical_name, string localPath, string remoteFolderPath,
             string url, string user, string password, string repositoryId)
         {
-            ServerCredentials credentials = new ServerCredentials()
+            UserCredentials credentials = new UserCredentials()
             {
-                Address = new Uri(url),
                 UserName = user,
                 Password = password
             };
-            Dictionary<string, string> repos = CmisUtils.GetRepositories(credentials);
+            Dictionary<string, string> repos = CmisUtils.GetRepositories(new Uri(url), credentials);
             foreach (KeyValuePair<string, string> pair in repos)
             {
                 Console.WriteLine(pair.Key + " : " + pair.Value);
@@ -410,18 +410,25 @@ namespace TestLibrary
             Console.WriteLine("Synced to clean state.");
 
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    new DateTime(1900, 01, 01),
-                    true);
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials() { 
+                        UserName=user,
+                        Password=password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval=5000,
+                IsSuspended=false,
+                LastSuccessedSync = new DateTime(1900, 01, 01),
+                SyncAtStartup=true
+            };
 
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             {
@@ -589,32 +596,48 @@ namespace TestLibrary
             // Mock.
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
             // Sync.
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    DateTime.MinValue,
-                    true);
-            repoInfo.ChunkSize = 1024 * 1024;
-            RepoInfo repoInfo2 = new RepoInfo(
-                    canonical_name2,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    DateTime.MinValue,
-                    true);
-            repoInfo2.ChunkSize = 1024 * 1024;
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = DateTime.MinValue,
+                SyncAtStartup = true,
+                ChunkSize = 1024 * 1024
+            };
+            Config.SyncConfig.LocalRepository repoInfo2 = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name2,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = DateTime.MinValue,
+                SyncAtStartup = true,
+                ChunkSize = 1024 * 1024
+            };
 
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             using (CmisRepo.SynchronizedFolder synchronizedFolder =
@@ -718,18 +741,27 @@ namespace TestLibrary
             // Mock.
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
             // Sync.
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    DateTime.MinValue,
-                    true);
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = DateTime.MinValue,
+                SyncAtStartup = true,
+                ChunkSize = 1024 * 1024
+            };
 
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             {
@@ -815,18 +847,26 @@ namespace TestLibrary
             // Mock.
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
             // Sync.
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    DateTime.MinValue,
-                    true);
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = DateTime.MinValue,
+                SyncAtStartup = true
+            };
 
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             {
@@ -987,18 +1027,26 @@ namespace TestLibrary
             // Mock.
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
             // Sync.
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    DateTime.MinValue,
-                    true);
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = DateTime.MinValue,
+                SyncAtStartup = true
+            };
 
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             {
@@ -1566,30 +1614,46 @@ namespace TestLibrary
             // Mock.
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
             // Sync.
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    DateTime.MinValue,
-                    true);
-            RepoInfo repoInfo2 = new RepoInfo(
-                    canonical_name2,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    DateTime.MinValue,
-                    true);
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = DateTime.MinValue,
+                SyncAtStartup = true
+            };
+            Config.SyncConfig.LocalRepository repoInfo2 = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name2,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = DateTime.MinValue,
+                SyncAtStartup = true
+            };
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             using (CmisRepo.SynchronizedFolder synchronizedFolder =
                     new CmisRepo.SynchronizedFolder(repoInfo, cmis, activityListener))
@@ -1685,18 +1749,26 @@ namespace TestLibrary
             // Mock.
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
             // Sync.
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    100,
-                    false,
-                    DateTime.MinValue,
-                    true);
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 100,
+                IsSuspended = false,
+                LastSuccessedSync = DateTime.MinValue,
+                SyncAtStartup = true
+            };
 
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             using (CmisRepo.SynchronizedFolder synchronizedFolder =
@@ -1793,18 +1865,26 @@ namespace TestLibrary
             Console.WriteLine("Synced to clean state.");
 
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    new DateTime(1900, 01, 01),
-                    true);
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = new DateTime(1900, 01, 01),
+                SyncAtStartup = true
+            };
 
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             {
@@ -1841,18 +1921,26 @@ namespace TestLibrary
             Console.WriteLine("Synced to clean state.");
 
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    new DateTime(1900, 01, 01),
-                    true);
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = new DateTime(1900, 01, 01),
+                SyncAtStartup = true
+            };
 
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             {
@@ -1919,18 +2007,26 @@ namespace TestLibrary
             // Mock.
             IActivityListener activityListener = new Mock<IActivityListener>().Object;
             // Sync.
-            RepoInfo repoInfo = new RepoInfo(
-                    canonical_name,
-                    CMISSYNCDIR,
-                    remoteFolderPath,
-                    url,
-                    user,
-                    password,
-                    repositoryId,
-                    5000,
-                    false,
-                    DateTime.MinValue,
-                    true);
+            Config.SyncConfig.LocalRepository repoInfo = new Config.SyncConfig.LocalRepository()
+            {
+                DisplayName = canonical_name,
+                CmisDatabasePath = Path.Combine(CMISSYNCDIR, canonical_name + ".cmissync"),
+                RemotePath = remoteFolderPath,
+                Account = new Config.SyncConfig.Account()
+                {
+                    RemoteUrl = new Uri(url),
+                    Credentials = new UserCredentials()
+                    {
+                        UserName = user,
+                        Password = password
+                    }
+                },
+                RepositoryId = repositoryId,
+                PollInterval = 5000,
+                IsSuspended = false,
+                LastSuccessedSync = DateTime.MinValue,
+                SyncAtStartup = true
+            };
 
             using (CmisRepo cmis = new CmisRepo(repoInfo, activityListener))
             {
@@ -2083,14 +2179,13 @@ namespace TestLibrary
         [Test, TestCaseSource("TestServersFuzzy"), Category("Slow")]
         public void GetRepositoriesFuzzy(string url, string user, string password)
         {
-            ServerCredentials credentials = new ServerCredentials()
+            UserCredentials credentials = new UserCredentials()
             {
-                Address = new Uri(url),
                 UserName = user,
                 Password = password
             };
-            Tuple<CmisServer, Exception> server = CmisUtils.GetRepositoriesFuzzy(credentials);
-            Assert.NotNull(server.Item1);
+            CmisServer server = CmisUtils.GetRepositoriesFuzzy(new Uri(url), credentials);
+            Assert.NotNull(server);
         }
 
         /// <summary>

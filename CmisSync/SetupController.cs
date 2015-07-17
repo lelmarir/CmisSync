@@ -290,31 +290,7 @@ namespace CmisSync
         /// Whether CmisSync should be started automatically at login.
         /// </summary>
         private bool create_startup_item = true;
-
-        ///// <summary>
-        ///// Load repositories information from a CMIS endpoint.
-        ///// </summary>
-        //static public Tuple<CmisServer, Exception> GetRepositoriesFuzzy(ServerCredentials credentials)
-        //{
-        //    try
-        //    {
-        //        return CmisUtils.GetRepositoriesFuzzy(credentials);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return new Tuple<CmisServer, Exception>(null, e);
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Get the list of subfolders contained in a CMIS folder.
-        ///// </summary>
-        //static public string[] GetSubfolders(string repositoryId, string path,
-        //    string address, string user, string password)
-        //{
-        //    return CmisUtils.GetSubfolders(repositoryId, path, address, user, password);
-        //}
-
+        
         /// <summary>
         /// Regex to check an HTTP/HTTPS URL.
         /// </summary>

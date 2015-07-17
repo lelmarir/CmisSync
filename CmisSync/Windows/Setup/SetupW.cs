@@ -40,9 +40,9 @@ namespace CmisSync
     /// <summary>
     /// Dialog for the tutorial, and for the wizard to add a new remote folder.
     /// </summary>
-    public class Setup : SetupWindow
+    public class SetupW : SetupWindow
     {
-        private static readonly ILog Logger = LogManager.GetLogger(typeof(Setup));
+        private static readonly ILog Logger = LogManager.GetLogger(typeof(SetupW));
 
         private static readonly string PASSWORD_UNCHANGED_TEXT = "********";
 
@@ -63,7 +63,7 @@ namespace CmisSync
         /// <summary>
         /// Constructor.
         /// </summary>
-        public Setup()
+        public SetupW()
         {
             Logger.Debug("Entering constructor.");
 

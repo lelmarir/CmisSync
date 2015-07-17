@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="12.0">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -31,7 +31,7 @@
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
@@ -43,6 +43,7 @@
     <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
     <PlatformTarget>x86</PlatformTarget>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <StartupObject>CmisSync.Program</StartupObject>
@@ -60,6 +61,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DocumentationFile>bin\Debug\CmisSync.xml</DocumentationFile>
     <UseVSHostingProcess>true</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
@@ -86,8 +88,44 @@
     <Compile Include="..\ControllerBase.cs">
       <Link>ControllerBase.cs</Link>
     </Compile>
+    <Compile Include="..\Properties\Properties.Resources.de.Designer.cs">
+      <Link>Properties.Resources.de.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.de.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\Properties\Properties.Resources.es-ES.Designer.cs">
+      <Link>Properties.Resources.es-ES.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.es-ES.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\Properties\Properties.Resources.fr.Designer.cs">
+      <Link>Properties.Resources.fr.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.fr.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\Properties\Properties.Resources.ja.Designer.cs">
+      <Link>Properties.Resources.ja.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.ja.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\Properties\Properties.Resources.tlh-KX.Designer.cs">
+      <Link>Properties.Resources.tlh-KX.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.tlh-KX.resx</DependentUpon>
+    </Compile>
+    <Compile Include="..\Properties\Properties.Resources.uk.Designer.cs">
+      <Link>Properties.Resources.uk.Designer.cs</Link>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.uk.resx</DependentUpon>
+    </Compile>
     <Compile Include="..\SetupController.cs">
-      <Link>SetupController.cs</Link>
+      <Link>SetupWindow\SetupController.cs</Link>
     </Compile>
     <Compile Include="..\StatusIconController.cs">
       <Link>StatusIconController.cs</Link>
@@ -105,6 +143,87 @@
       <DependentUpon>MissingFolderDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="PollIntervalSlider.cs" />
+    <Compile Include="Properties.Resources.cs.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.cs.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties.Resources.da.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.da.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties.Resources.it.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.it.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties.Resources.nl.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.nl.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties.Resources.no.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.no.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties.Resources.pl.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.pl.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties.Resources.pt-PT.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.pt-PT.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties.Resources.ru.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.ru.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties.Resources.sl.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Properties.Resources.sl.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\Pages\Page.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\Pages\Page.Designer.cs">
+      <DependentUpon>Page.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\Pages\Tutorial4.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\Pages\Tutorial4.Designer.cs">
+      <DependentUpon>Tutorial4.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\Pages\Tutorial3.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\Pages\Tutorial3.Designer.cs">
+      <DependentUpon>Tutorial3.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\Pages\Tutorial2.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\Pages\Tutorial2.Designer.cs">
+      <DependentUpon>Tutorial2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\Pages\Tutorial1.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Setup\Pages\Tutorial1.Designer.cs">
+      <DependentUpon>Tutorial1.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Setup\SetupWindow2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Setup\SetupWindow2.Designer.cs">
+      <DependentUpon>SetupWindow2.cs</DependentUpon>
+    </Compile>
     <Compile Include="Shortcut.cs" />
     <Compile Include="StatusIcon.cs">
       <SubType>Form</SubType>
@@ -112,9 +231,9 @@
     <Compile Include="GUI.cs" />
     <Compile Include="About.cs" />
     <Compile Include="Controller.cs" />
-    <Compile Include="Setup.cs" />
+    <Compile Include="Setup\SetupW.cs" />
     <Compile Include="UIHelpers.cs" />
-    <Compile Include="SetupWindow.cs" />
+    <Compile Include="Setup\SetupWindow.cs" />
     <Compile Include="..\Program.cs">
       <Link>Program.cs</Link>
     </Compile>
@@ -226,19 +345,33 @@
     <EmbeddedResource Include="..\Linux\Pixmaps\icons\process-working-22.png">
       <Link>Pixmaps\process-working-22.png</Link>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\Properties\Properties.Resources.de.resx" />
+    <EmbeddedResource Include="..\Properties\Properties.Resources.de.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.de.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="..\Properties\Properties.Resources.es-ES.resx">
       <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.es-ES.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="..\Properties\Properties.Resources.fr.resx">
       <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.fr.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="..\Properties\Properties.Resources.tlh-KX.resx" />
+    <EmbeddedResource Include="..\Properties\Properties.Resources.tlh-KX.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.tlh-KX.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="..\Properties\Properties.Resources.uk.resx">
       <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.uk.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="..\Properties\Properties.Resources.ja.resx">
       <SubType>Designer</SubType>
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.ja.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="..\Properties\Properties.Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -248,17 +381,70 @@
     <EmbeddedResource Include="MissingFolderDialog.it.resx">
       <DependentUpon>MissingFolderDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Properties.Resources.cs.resx" />
-    <EmbeddedResource Include="Properties.Resources.da.resx" />
-    <EmbeddedResource Include="Properties.Resources.it.resx" />
-    <EmbeddedResource Include="Properties.Resources.nl.resx" />
-    <EmbeddedResource Include="Properties.Resources.no.resx" />
-    <EmbeddedResource Include="Properties.Resources.pl.resx" />
-    <EmbeddedResource Include="Properties.Resources.pt-PT.resx" />
-    <EmbeddedResource Include="Properties.Resources.ru.resx" />
-    <EmbeddedResource Include="Properties.Resources.sl.resx" />
+    <EmbeddedResource Include="Properties.Resources.cs.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.cs.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties.Resources.da.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.da.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties.Resources.it.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.it.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties.Resources.nl.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.nl.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties.Resources.no.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.no.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties.Resources.pl.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.pl.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties.Resources.pt-PT.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.pt-PT.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties.Resources.ru.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.ru.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties.Resources.sl.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Properties.Resources.sl.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="MissingFolderDialog.resx">
       <DependentUpon>MissingFolderDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\Pages\Page.resx">
+      <DependentUpon>Page.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\Pages\Tutorial4.resx">
+      <DependentUpon>Tutorial4.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\Pages\Tutorial3.resx">
+      <DependentUpon>Tutorial3.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\Pages\Tutorial2.resx">
+      <DependentUpon>Tutorial2.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\Pages\Tutorial1.resx">
+      <DependentUpon>Tutorial1.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\SetupWindow2.it-IT.resx">
+      <DependentUpon>SetupWindow2.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Setup\SetupWindow2.resx">
+      <DependentUpon>SetupWindow2.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

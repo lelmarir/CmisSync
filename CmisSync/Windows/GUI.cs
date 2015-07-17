@@ -28,7 +28,7 @@ namespace CmisSync {
         /// <summary>
         /// Dialog shown at first run to explain how CmisSync works.
         /// </summary>
-        public Setup Setup;
+        public SetupW Setup;
 
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace CmisSync {
 			// FIXME: The second time windows are shown, the windows
 			// don't have the smooth ease in animation, but appear abruptly.
 			// The ease out animation always seems to work
-            Setup      = new Setup ();
+            Setup      = new SetupW ();
             About      = new About ();
             
             Program.Controller.UIHasLoaded ();
@@ -64,6 +64,10 @@ namespace CmisSync {
         /// </summary>
         public void Run ()
         {
+            CmisSync.Setup.SetupWindow2 w = new CmisSync.Setup.SetupWindow2();
+            w.Page = new CmisSync.Setup.Pages.Tutorial1();
+            w.Show();
+
             Application.Run (StatusIcon = new StatusIcon ());
             StatusIcon.Dispose ();
         }

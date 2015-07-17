@@ -410,7 +410,7 @@ namespace CmisSync.Lib
         /// <param name="path">Path of the file in conflict</param>
         /// <param name="user">Local user</param>
         /// <returns></returns>
-        public static string CreateConflictFilename(string filePath, Config.SyncConfig.LocalRepository repo)
+        public static string CreateConflictFilename(string filePath, string userName)
         {
             if (!File.Exists(filePath))
             {
@@ -420,13 +420,13 @@ namespace CmisSync.Lib
             {
                 string extension = Path.GetExtension(filePath);
                 string filepath = filePath.Substring(0, filePath.Length - extension.Length);
-                string ret = String.Format("{0}_{1}-conflict-version{2}", filepath, repo.Account.Credentials.UserName, extension);
+                string ret = String.Format("{0}_{1}-conflict-version{2}", filepath, userName, extension);
                 if (!File.Exists(ret))
                     return ret;
                 int index = 1;
                 do
                 {
-                    ret = String.Format("{0}_{1}-conflict-version ({2}){3}", filepath, repo.Account.Credentials.UserName, index.ToString(), extension);
+                    ret = String.Format("{0}_{1}-conflict-version ({2}){3}", filepath, userName, index.ToString(), extension);
                     if (!File.Exists(ret))
                     {
                         return ret;

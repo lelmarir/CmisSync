@@ -786,7 +786,7 @@ namespace CmisSync.Lib.Sync
                     // TODO warn if local changes in the file.
                     if (File.Exists(syncItem.LocalPath))
                     {
-                        string conflictFilename = Utils.CreateConflictFilename(syncItem.LocalPath, repoinfo);
+                        string conflictFilename = Utils.CreateConflictFilename(syncItem.LocalPath, repoinfo.Account.Credentials.UserName);
                         Logger.Warn("Local file \"" + syncItem.LocalPath + "\" has been renamed to \"" + conflictFilename + "\"");
                         File.Move(syncItem.LocalPath, conflictFilename);
                     }
@@ -1145,7 +1145,7 @@ namespace CmisSync.Lib.Sync
                             {
                                 Logger.Info(String.Format("Conflict with file: {0}", syncItem.RemoteFileName));
                                 // Rename local file with a conflict suffix.
-                                string conflictFilename = Utils.CreateConflictFilename(filepath, repoinfo);
+                                string conflictFilename = Utils.CreateConflictFilename(filepath, repoinfo.Account.Credentials.UserName);
                                 Logger.Debug(String.Format("Renaming conflicted local file {0} to {1}", filepath, conflictFilename));
                                 File.Move(filepath, conflictFilename);
 
